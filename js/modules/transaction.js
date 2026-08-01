@@ -4,11 +4,10 @@
 
 const ETAPAS = {
 
-    VALOR: 1,
-    TIPO: 2,
-    CATEGORIA: 3,
-    DETALHES: 4,
-    RESUMO: 5
+   VALOR: 1,
+   TIPO: 2,
+   CATEGORIA: 3,
+   RESUMO: 4
 
 };
 
@@ -20,19 +19,17 @@ let etapaAtual = ETAPAS.VALOR;
 
 let registroAtual = {
 
-    data: new Date(),
+   data: new Date(),
 
-    tipo: "",
+   tipo: "",
 
-    descricao: "",
-
-    categoria: "",
-
-    subcategoria: "",
-
-    valor: 0,
-
-    observacao: ""
+   descricao: "",
+   categoria: "",
+   subcategoria: "",
+   valor: 0,
+   observacao: "",
+   parcelado: false,
+   quantidadeParcelas: 1
 
 };
 
@@ -48,21 +45,21 @@ let subcategorias = [];
 
 function renderTransaction() {
 
-    return `
+   return `
 
-        <div class="app-container">
+       <div class="app-container">
 
-            ${renderProgress()}
+           ${renderProgress()}
 
-            <main class="app-content">
+           <main class="app-content">
 
-                ${renderCurrentStep()}
+               ${renderCurrentStep()}
 
-            </main>
+           </main>
 
-        </div>
+       </div>
 
-    `;
+   `;
 
 }
 
@@ -72,133 +69,166 @@ function renderTransaction() {
 
 function inicializarTransaction() {
 
-    if (etapaAtual === ETAPAS.VALOR) {
+   if (etapaAtual === ETAPAS.VALOR) {
 
-        const btnContinuar =
-    document.getElementById("btnContinuar");
+       const btnContinuar =
+           document.getElementById("btnContinuar");
 
-if(btnContinuar){
+       if (btnContinuar) {
 
-    btnContinuar.addEventListener(
-    "click",
-    salvarValor
-);
+           btnContinuar.addEventListener(
+               "click",
+               salvarValor
+           );
+
+       }
+
+       const campoValor =
+           document.getElementById("valor");
+
+       if (campoValor) {
+
+           campoValor.addEventListener(
+               "input",
+               aplicarMascaraMoeda
+           );
+
+       }
+
+       const checkboxParcelado =
+           document.getElementById("parcelado");
+
+       if (checkboxParcelado) {
+
+           checkboxParcelado.addEventListener(
+               "change",
+               atualizarVisibilidadeParcelas
+           );
+
+       }
+
+       const selectParcelas =
+           document.getElementById("quantidadeParcelas");
+
+       if (selectParcelas) {
+
+           selectParcelas.addEventListener(
+               "change",
+               () => {
+
+                   registroAtual.quantidadeParcelas =
+                       Number(selectParcelas.value);
+
+               }
+           );
+
+       }
+
+       const btnVoltarDashboard =
+           document.getElementById("btnVoltarDashboard");
+
+       if (btnVoltarDashboard) {
+
+           btnVoltarDashboard.addEventListener("click", () => {
+
+               navegar("dashboard");
+
+           });
+
+       }
+
+       atualizarVisibilidadeParcelas();
+
+   }
+
+   if (etapaAtual === ETAPAS.TIPO) {
+
+       const opcoes =
+           document.querySelectorAll(".option-card");
+
+       opcoes.forEach(opcao => {
+
+           opcao.addEventListener("click", salvarTipo);
+
+       });
+
+       const btnVoltar =
+           document.getElementById("btnVoltar");
+
+       btnVoltar.addEventListener(
+           "click",
+           voltarEtapa
+       );
+
+   }
+
+   if (etapaAtual === ETAPAS.CATEGORIA) {
+
+       const opcoes =
+           document.querySelectorAll(".option-card");
+
+       opcoes.forEach(opcao => {
+
+           opcao.addEventListener("click", salvarCategoria);
+
+       });
+
+       const btnVoltar =
+           document.getElementById("btnVoltar");
+
+       btnVoltar.addEventListener(
+           "click",
+           voltarEtapa
+       );
+
+   }
+
+   if (etapaAtual === ETAPAS.RESUMO) {
+
+       const btnSalvar =
+           document.getElementById("btnSalvar");
+
+       btnSalvar.addEventListener(
+           "click",
+           finalizarRegistro
+       );
+
+       const btnVoltar =
+           document.getElementById("btnVoltar");
+
+       btnVoltar.addEventListener(
+           "click",
+           voltarEtapa
+       );
+
+   }
 
 }
 
-        const campoValor =
-        document.getElementById("valor");
-
-        campoValor.addEventListener(
-        "input",
-        aplicarMascaraMoeda
-        );
-
-        const btnVoltarDashboard =
-    document.getElementById("btnVoltarDashboard");
-
-if(btnVoltarDashboard){
-
-    btnVoltarDashboard.addEventListener("click", () => {
-
-        navegar("dashboard");
-
-    });
-
-}
-
-    }
-
-    if (etapaAtual === ETAPAS.TIPO) {
-
-        const opcoes =
-        document.querySelectorAll(".option-card");
-
-    opcoes.forEach(opcao => {
-
-        opcao.addEventListener("click", salvarTipo);
-
-    });
-
-    const btnVoltar =
-        document.getElementById("btnVoltar");
-
-    btnVoltar.addEventListener(
-        "click",
-        voltarEtapa
-    );
-
-}
-
-    if (etapaAtual === ETAPAS.CATEGORIA) {
-
-        const opcoes =
-        document.querySelectorAll(".option-card");
-
-    opcoes.forEach(opcao => {
-
-        opcao.addEventListener("click", salvarCategoria);
-
-    });
-
-    const btnVoltar =
-        document.getElementById("btnVoltar");
-
-    btnVoltar.addEventListener(
-        "click",
-        voltarEtapa
-    );
-
-}
-
-    if (etapaAtual === ETAPAS.RESUMO) {
-
-    const btnSalvar =
-        document.getElementById("btnSalvar");
-
-    btnSalvar.addEventListener(
-        "click",
-        finalizarRegistro
-    );
-
-    const btnVoltar =
-        document.getElementById("btnVoltar");
-
-    btnVoltar.addEventListener(
-        "click",
-        voltarEtapa
-    );
-
-}
-
-}       
 /* ============================================
    ETAPA ATUAL
 ============================================ */
 
 function renderCurrentStep() {
 
-    switch (etapaAtual) {
+   switch (etapaAtual) {
 
-        case ETAPAS.VALOR:
-            return renderStepValor();
+       case ETAPAS.VALOR:
+           return renderStepValor();
 
-        case ETAPAS.TIPO:
-            return renderStepTipo();
+       case ETAPAS.TIPO:
+           return renderStepTipo();
 
-        case ETAPAS.CATEGORIA:
-            return renderStepCategoria();
+       case ETAPAS.CATEGORIA:
+           return renderStepCategoria();
 
-        case ETAPAS.DETALHES:
-            return renderStepDetalhes();
+       case ETAPAS.RESUMO:
+           return renderStepResumo();
 
-        case ETAPAS.RESUMO:
-            return renderStepResumo();
+       default:
+           return "";
 
-        default:
-            return "";
-
-    }
+   }
 
 }
 
@@ -208,59 +238,61 @@ function renderCurrentStep() {
 
 function renderStepValor() {
 
-    return `
+   return `
 
-        <section class="assistant-step value-step">
+       <section class="assistant-step value-step">
 
-            <header class="transaction-header">
+           <header class="transaction-header">
 
-                <button
-                    id="btnVoltarDashboard"
-                    class="back-button">
+               <button
+                   id="btnVoltarDashboard"
+                   class="back-button">
 
-                    ←
+                   ←
 
-                </button>
+               </button>
 
-                <h2>Nova movimentação</h2>
+               <h2>Nova movimentação</h2>
 
-            </header>
+           </header>
 
-            <h2 class="step-title">
+           <h2 class="step-title">
 
-                Quanto foi?
+               Quanto foi?
 
-            </h2>
+           </h2>
 
-            <div class="value-container">
+           <div class="value-container">
 
-                <span class="currency">
+               <span class="currency">
 
-                    R$
+                   R$
 
-                </span>
+               </span>
 
-                <input
-                    id="valor"
-                    class="value-input"
-                    type="text"
-                    placeholder="0,00"
-                    autofocus
-                >
+               <input
+                   id="valor"
+                   class="value-input"
+                   type="text"
+                   placeholder="0,00"
+                   autofocus
+               >
 
-            </div>
+           </div>
 
-            <button
-                id="btnContinuar"
-                class="primary-button">
+           ${renderParcelamentoNoValor()}
 
-                Continuar
+           <button
+               id="btnContinuar"
+               class="primary-button">
 
-            </button>
+               Continuar
 
-        </section>
+           </button>
 
-    `;
+       </section>
+
+   `;
 
 }
 
@@ -270,44 +302,44 @@ function renderStepValor() {
 
 function renderStepTipo() {
 
-    return `
+   return `
 
-        <section class="assistant-step">
+       <section class="assistant-step">
 
-        <button
-    id="btnVoltar"
-    class="secondary-button">
+       <button
+           id="btnVoltar"
+           class="secondary-button">
 
-    ← Voltar
+           ← Voltar
 
-</button>
+       </button>
 
-            <h2>O que deseja registrar?</h2>
+           <h2>O que deseja registrar?</h2>
 
-            <div class="option-card" data-tipo="Receita">
+           <div class="option-card" data-tipo="Receita">
 
-                💰
-                <span>Receita</span>
+               💰
+               <span>Receita</span>
 
-            </div>
+           </div>
 
-            <div class="option-card" data-tipo="Despesa">
+           <div class="option-card" data-tipo="Despesa">
 
-                🛒
-                <span>Despesa</span>
+               🛒
+               <span>Despesa</span>
 
-            </div>
+           </div>
 
-            <div class="option-card" data-tipo="Ajuste">
+           <div class="option-card" data-tipo="Ajuste">
 
-                ⚖️
-                <span>Ajuste de saldo</span>
+               ⚖️
+               <span>Ajuste de saldo</span>
 
-            </div>
+           </div>
 
-        </section>
+       </section>
 
-    `;
+   `;
 
 }
 
@@ -317,53 +349,53 @@ function renderStepTipo() {
 
 function renderStepCategoria() {
 
-    return `
+   return `
 
-        <section class="assistant-step">
-        
-        <button
-    id="btnVoltar"
-    class="secondary-button">
+       <section class="assistant-step">
 
-    ← Voltar
+       <button
+           id="btnVoltar"
+           class="secondary-button">
 
-</button>
+           ← Voltar
 
-            <h2>Como deseja classificar?</h2>
+       </button>
 
-            <p>Escolha uma categoria.</p>
+           <h2>Como deseja classificar?</h2>
 
-            <div class="option-card" data-categoria="Essencial">
+           <p>Escolha uma categoria.</p>
 
-                🥬
-                <span>Essencial</span>
+           <div class="option-card" data-categoria="Essencial">
 
-            </div>
+               🥬
+               <span>Essencial</span>
 
-            <div class="option-card" data-categoria="Não Essencial">
+           </div>
 
-                🛍️
-                <span>Não Essencial</span>
+           <div class="option-card" data-categoria="Não Essencial">
 
-            </div>
+               🛍️
+               <span>Não Essencial</span>
 
-            <div class="option-card" data-categoria="Investimentos">
+           </div>
 
-                📈
-                <span>Investimentos</span>
+           <div class="option-card" data-categoria="Investimentos">
 
-            </div>
+               📈
+               <span>Investimentos</span>
 
-            <div class="option-card" data-categoria="Sonhos">
+           </div>
 
-                🎯
-                <span>Sonhos</span>
+           <div class="option-card" data-categoria="Sonhos">
 
-            </div>
+               🎯
+               <span>Sonhos</span>
 
-        </section>
+           </div>
 
-    `;
+       </section>
+
+   `;
 
 }
 
@@ -371,9 +403,84 @@ function renderStepCategoria() {
    ETAPA 4 - DETALHES
 ============================================ */
 
-function renderStepDetalhes() {
+function renderParcelamentoNoValor() {
 
-    return ``;
+   return `
+
+       <div class="detail-card card no-margin-top">
+
+           <label class="checkbox-card">
+
+               <input
+                   type="checkbox"
+                   id="parcelado"
+                   ${registroAtual.parcelado ? "checked" : ""}
+               >
+
+               <span>Essa compra é parcelada?</span>
+
+           </label>
+
+           <div id="containerParcelas" class="${registroAtual.parcelado ? "" : "hidden"}">
+
+               <label for="quantidadeParcelas">
+
+                   Quantidade de parcelas
+
+               </label>
+
+               <select id="quantidadeParcelas">
+
+                   ${Array.from({ length: 12 }, (_, index) => index + 1).map((valor) => `
+
+                       <option value="${valor}" ${Number(registroAtual.quantidadeParcelas) === valor ? "selected" : ""}>
+
+                           ${valor}x
+
+                       </option>
+
+                   `).join("")}
+
+               </select>
+
+           </div>
+
+       </div>
+
+   `;
+
+}
+
+function capturarParcelamentoNoValor() {
+
+   if (registroAtual.tipo !== "Despesa") {
+
+       registroAtual.parcelado = false;
+       registroAtual.quantidadeParcelas = 1;
+       return;
+
+   }
+
+   const checkboxParcelado = document.getElementById("parcelado");
+   const selectParcelas = document.getElementById("quantidadeParcelas");
+
+   if (checkboxParcelado) {
+
+       registroAtual.parcelado = checkboxParcelado.checked;
+
+   }
+
+   if (selectParcelas) {
+
+       registroAtual.quantidadeParcelas = Number(selectParcelas.value);
+
+   }
+
+   if (!registroAtual.parcelado) {
+
+       registroAtual.quantidadeParcelas = 1;
+
+   }
 
 }
 
@@ -383,128 +490,138 @@ function renderStepDetalhes() {
 
 function renderStepResumo() {
 
-    return `
+   return `
 
-        <section class="assistant-step">
+       <section class="assistant-step">
 
-        <button
-                id="btnVoltar"
-                class="secondary-button">
+       <button
+               id="btnVoltar"
+               class="secondary-button">
 
-                ← Voltar
+               ← Voltar
 
-            </button>
+           </button>
 
-            <h2>Confira sua movimentação</h2>
+           <h2>Confira sua movimentação</h2>
 
-            <div class="summary-card card">
+           <div class="summary-card card">
 
-    <div class="summary-row">
+   <div class="summary-row">
 
-        <span class="summary-icon">
+       <span class="summary-icon">
 
-            ${registroAtual.tipo === "Receita"
-                ? "💰"
-                : registroAtual.tipo === "Despesa"
-                ? "🛒"
-                : "⚖️"}
+           ${registroAtual.tipo === "Receita"
+               ? "💰"
+               : registroAtual.tipo === "Despesa"
+               ? "🛒"
+               : "⚖️"}
 
-        </span>
+       </span>
 
-        <div>
+       <div>
 
-            <h3>
+           <h3>
 
-                ${registroAtual.tipo}
+               ${registroAtual.tipo}
 
-            </h3>
+           </h3>
 
-            <p>
+           <p>
 
-                ${registroAtual.categoria}
+               ${registroAtual.categoria}
 
-            </p>
+           </p>
 
-        </div>
+       </div>
 
-    </div>
+   </div>
 
-    <div class="summary-value">
+   <div class="summary-value">
 
-        R$ ${registroAtual.valor.toLocaleString(
-            "pt-BR",
-            {
+       R$ ${registroAtual.valor.toLocaleString(
+           "pt-BR",
+           {
 
-                minimumFractionDigits:2
+               minimumFractionDigits:2
 
-            }
-        )}
+           }
+       )}
 
-    </div>
+   </div>
+
+   ${registroAtual.tipo === "Despesa" && registroAtual.parcelado ? `
+
+       <p class="summary-detail-text">
+
+           Parcelado em ${registroAtual.quantidadeParcelas}x de R$ ${calcularValorParcela(registroAtual.valor, registroAtual.quantidadeParcelas).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+
+       </p>
+
+   ` : ""}
 
 </div>
 
-            <p class="summary-message">
+           <p class="summary-message">
 
-    ✓ Tudo certo?
+   ✓ Tudo certo?
 
 </p>
 
 <div class="summary-form">
 
 
-    <label>
+   <label>
 
-    Subcategoria (opcional)
+   Subcategoria (opcional)
 
-</label>
+   </label>
 
-<select id="subcategoria">
+   <select id="subcategoria">
 
-    <option value="">
+   <option value="">
 
-        Selecione...
+       Selecione...
 
-    </option>
+   </option>
 
-    ${subcategorias.map(subcategoria => `
+   ${subcategorias.map(subcategoria => `
 
-    <option
-        value="${subcategoria}"
-        ${registroAtual.subcategoria === subcategoria ? "selected" : ""}
-    >
-        ${subcategoria}
-    </option>
+   <option
+       value="${subcategoria}"
+       ${registroAtual.subcategoria === subcategoria ? "selected" : ""}
+   >
+       ${subcategoria}
+   </option>
 
 `).join("")}
 
-</select>
+   </select>
 
-    <label>
+   <label>
 
-        Observação (opcional)
+       Observação (opcional)
 
-    </label>
+   </label>
 
-    <textarea
-        id="observacao"
-        rows="3"
-        placeholder="Adicionar observação..."
-    >${registroAtual.observacao || ""}</textarea>
+   <textarea
+       id="observacao"
+       rows="3"
+       placeholder="Adicionar observação..."
+   >${registroAtual.observacao || ""}</textarea>
 
 </div>
 
-            <button
-                id="btnSalvar"
-                class="primary-button">
+           <button
+               id="btnSalvar"
+               class="primary-button">
 
-                ✓ Salvar movimentação
+               ✓ Salvar movimentação
 
-            </button>
+           </button>
 
-        </section>
+       </section>
 
-    `;
+   `;
 
 }
 
@@ -514,33 +631,33 @@ function renderStepResumo() {
 
 function salvarValor() {
 
-    const campoValor = document.getElementById("valor");
+   const campoValor = document.getElementById("valor");
 
-    const valor = Number(
+   const valor = Number(
 
-    campoValor.value
+   campoValor.value
 
-        .replace(".", "")
+       .replace(".", "")
 
-        .replace(",", ".")
+       .replace(",", ".")
 
-);
+   );
 
-    if (isNaN(valor) || valor <= 0) {
+   if (isNaN(valor) || valor <= 0) {
 
-        alert("Informe um valor válido.");
+       alert("Informe um valor válido.");
 
-        return;
+       return;
 
-    }
+   }
 
-    registroAtual.valor = valor;
+   registroAtual.valor = valor;
 
-    etapaAtual = ETAPAS.TIPO;
+   etapaAtual = ETAPAS.TIPO;
 
-    app.innerHTML = renderTransaction();
+   app.innerHTML = renderTransaction();
 
-    inicializarTransaction();
+   inicializarTransaction();
 
 }
 
@@ -550,106 +667,208 @@ function salvarValor() {
 
 function aplicarMascaraMoeda(event){
 
-    let valor = event.target.value;
+   let valor = event.target.value;
 
-    valor = valor.replace(/\D/g, "");
+   valor = valor.replace(/\D/g, "");
 
-    valor = (Number(valor) / 100).toFixed(2);
+   valor = (Number(valor) / 100).toFixed(2);
 
-    valor = valor.replace(".", ",");
+   valor = valor.replace(".", ",");
 
-    event.target.value = valor;
+   event.target.value = valor;
 
 }
 
 function salvarTipo(event) {
 
-    registroAtual.tipo =
-        event.currentTarget.dataset.tipo;
+   registroAtual.tipo =
+       event.currentTarget.dataset.tipo;
 
-    etapaAtual = ETAPAS.CATEGORIA;
+   capturarParcelamentoNoValor();
 
-    app.innerHTML = renderTransaction();
+   etapaAtual = ETAPAS.CATEGORIA;
 
-    inicializarTransaction();
+   app.innerHTML = renderTransaction();
+
+   inicializarTransaction();
 
 }
 
 async function salvarCategoria(event) {
 
-    registroAtual.categoria =
-    event.currentTarget.dataset.categoria;
+   registroAtual.categoria =
+       event.currentTarget.dataset.categoria;
 
-subcategorias =
-    await obterSubcategorias();
+   subcategorias =
+       await obterSubcategorias();
 
-etapaAtual = ETAPAS.RESUMO;
+   etapaAtual = ETAPAS.RESUMO;
 
-app.innerHTML = renderTransaction();
+   app.innerHTML = renderTransaction();
 
-inicializarTransaction();
+   inicializarTransaction();
 
 }
 
 function voltarEtapa(){
 
-    switch (etapaAtual) {
+   switch (etapaAtual) {
 
-        case ETAPAS.TIPO:
+       case ETAPAS.TIPO:
 
-            etapaAtual = ETAPAS.VALOR;
-            break;
+           etapaAtual = ETAPAS.VALOR;
+           break;
 
-        case ETAPAS.CATEGORIA:
+       case ETAPAS.CATEGORIA:
 
-            etapaAtual = ETAPAS.TIPO;
-            break;
+           etapaAtual = ETAPAS.TIPO;
+           break;
 
-        case ETAPAS.RESUMO:
+       case ETAPAS.RESUMO:
 
-            etapaAtual = ETAPAS.CATEGORIA;
-            break;
+           etapaAtual = ETAPAS.CATEGORIA;
+           break;
 
-    }
+   }
 
-    app.innerHTML = renderTransaction();
+   app.innerHTML = renderTransaction();
 
-    inicializarTransaction();
+   inicializarTransaction();
 
 }
 
+
 async function finalizarRegistro(){
 
-    registroAtual.subcategoria =
-    document.getElementById("subcategoria").value.trim();
+   registroAtual.subcategoria =
+       document.getElementById("subcategoria").value.trim();
 
-registroAtual.observacao =
-    document.getElementById("observacao").value.trim();
+   registroAtual.observacao =
+       document.getElementById("observacao").value.trim();
 
-    await salvarNaPlanilha(registroAtual);
+   const registrosParaSalvar = montarRegistrosParaSalvar(registroAtual);
 
-    alert("Movimentação cadastrada!");
+   try {
 
-    resetRegistro();
+       for (const registroParaSalvar of registrosParaSalvar) {
 
-    etapaAtual = ETAPAS.VALOR;
+           await salvarNaPlanilha(registroParaSalvar);
 
-    navegar("dashboard");
+       }
+
+       alert("Movimentação cadastrada!");
+
+       resetRegistro();
+
+       etapaAtual = ETAPAS.VALOR;
+
+       navegar("dashboard");
+
+   } catch (erro) {
+
+       console.error("Erro ao salvar a movimentação:", erro);
+       alert("Não foi possível cadastrar a movimentação.");
+
+   }
 
 }
 
 function resetRegistro(){
 
-    registroAtual = {
+   registroAtual = {
 
-        valor: null,
-        tipo: null,
-        categoria: null,
-        subcategoria: null,
-        observacao: "",
-        data: new Date()
+       data: new Date(),
+       tipo: null,
+       descricao: "",
+       categoria: null,
+       subcategoria: null,
+       valor: null,
+       observacao: "",
+       parcelado: false,
+       quantidadeParcelas: 1
 
-    };
+   };
+
+}
+
+function montarRegistrosParaSalvar(registro) {
+
+   if (registro.tipo !== "Despesa" || !registro.parcelado || Number(registro.quantidadeParcelas || 1) <= 1) {
+
+       return [{
+           ...registro,
+           parcelado: false,
+           quantidadeParcelas: 1,
+           parcela: 1
+       }];
+
+   }
+
+   const quantidadeParcelas = Number(registro.quantidadeParcelas || 1);
+   const valorTotal = Number(registro.valor || 0);
+   const valorBase = Number((valorTotal / quantidadeParcelas).toFixed(2));
+   const valorRestante = Number((valorTotal - (valorBase * (quantidadeParcelas - 1))).toFixed(2));
+
+   const registros = [];
+
+   for (let index = 0; index < quantidadeParcelas; index++) {
+
+       const valorParcela = index === quantidadeParcelas - 1
+           ? valorRestante
+           : valorBase;
+
+       const dataParcela = new Date(registro.data);
+       dataParcela.setMonth(dataParcela.getMonth() + index);
+
+       registros.push({
+           ...registro,
+           valor: Number(valorParcela.toFixed(2)),
+           parcelado: true,
+           quantidadeParcelas,
+           parcela: index + 1,
+           data: dataParcela
+       });
+
+   }
+
+   return registros;
+
+}
+
+function calcularValorParcela(valorTotal, quantidadeParcelas) {
+
+   if (!valorTotal || !quantidadeParcelas || quantidadeParcelas <= 1) {
+
+       return valorTotal;
+
+   }
+
+   return Number((valorTotal / quantidadeParcelas).toFixed(2));
+
+}
+
+function atualizarVisibilidadeParcelas() {
+
+   const checkboxParcelado = document.getElementById("parcelado");
+   const containerParcelas = document.getElementById("containerParcelas");
+
+   if (!checkboxParcelado || !containerParcelas) {
+
+       return;
+
+   }
+
+   const estaParcelado = checkboxParcelado.checked;
+
+   containerParcelas.classList.toggle("hidden", !estaParcelado);
+
+   registroAtual.parcelado = estaParcelado;
+
+   if (!estaParcelado) {
+
+       registroAtual.quantidadeParcelas = 1;
+
+   }
 
 }
 
@@ -659,18 +878,18 @@ function resetRegistro(){
 
 function renderProgress(){
 
-    let html = '<div class="progress-container">';
+   let html = '<div class="progress-container">';
 
-    for (let i = 1; i <= 5; i++) {
+   for (let i = 1; i <= 5; i++) {
 
-        html += `
-            <div class="progress-step ${i <= etapaAtual ? "active" : ""}"></div>
-        `;
+       html += `
+           <div class="progress-step ${i <= etapaAtual ? "active" : ""}"></div>
+       `;
 
-    }
+   }
 
-    html += '</div>';
+   html += '</div>';
 
-    return html;
+   return html;
 
 }

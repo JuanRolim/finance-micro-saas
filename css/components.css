@@ -235,17 +235,76 @@
 ============================================ */
 
 .summary-form{
-
+ 
     display:flex;
-
+ 
     flex-direction:column;
-
+ 
     gap:12px;
-
+ 
     margin-top:24px;
-
+ 
 }
 
+.detail-card{
+ 
+    display:flex;
+ 
+    flex-direction:column;
+ 
+    gap:16px;
+ 
+    padding:20px;
+ 
+}
+
+.no-margin-top{
+ 
+    margin-top:0;
+ 
+}
+
+.detail-text,
+.summary-detail-text{
+ 
+    margin:0;
+ 
+    color:#6B7280;
+ 
+    line-height:1.5;
+ 
+}
+
+.checkbox-card{
+ 
+    display:flex;
+ 
+    align-items:center;
+ 
+    gap:12px;
+ 
+    font-weight:600;
+ 
+    color:#374151;
+ 
+}
+
+.checkbox-card input{
+ 
+    width:auto;
+ 
+    margin:0;
+ 
+    accent-color:#2563EB;
+ 
+}
+
+.hidden{
+ 
+    display:none;
+ 
+}
+ 
 .summary-form label{
 
     font-size:14px;

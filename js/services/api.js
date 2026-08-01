@@ -2,45 +2,74 @@
    CONFIGURAÇÃO DA API
 ============================================ */
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzqqw5QNFUcbVpz9xW1wKPqfXTHFRrdYIXgR9-UBJofEa1YJXV5sgk5m8qZfvg5ghUU/exec";
-
+const API_URL = window.location.protocol === "file:"
+   ? "http://127.0.0.1:8000/api"
+   : "/api";
 /* ============================================
    ENVIAR MOVIMENTAÇÃO
 ============================================ */
 
 async function salvarNaPlanilha(registro){
-
+ 
     try{
-
+ 
         const formData = new URLSearchParams();
-
+ 
         formData.append(
             "registro",
             JSON.stringify(registro)
         );
-
+ 
         const resposta = await fetch(API_URL,{
-
+ 
             method:"POST",
-
-            body: formData
-
+ 
+            body: formData,
+ 
+            headers: {
+ 
+                "Accept": "application/json"
+ 
+            }
+ 
         });
-
-        const resultado = await resposta.json();
-
+ 
+        if (!resposta.ok) {
+ 
+            throw new Error("Falha ao salvar na planilha.");
+ 
+        }
+ 
+        const textoResposta = await resposta.text();
+ 
+        let resultado = null;
+ 
+        if (textoResposta) {
+ 
+            try {
+ 
+                resultado = JSON.parse(textoResposta);
+ 
+            } catch (erro) {
+ 
+                resultado = textoResposta;
+ 
+            }
+ 
+        }
+ 
         console.log(resultado);
-
+ 
         return resultado;
-
+ 
     }catch(erro){
-
+ 
         console.error(erro);
-
+ 
         alert("Erro ao conectar com a planilha.");
-
+ 
     }
-
+ 
 }
 
 /* ============================================
@@ -48,41 +77,70 @@ async function salvarNaPlanilha(registro){
 ============================================ */
 
 async function obterSubcategorias(){
-
     try{
-
         const resposta = await fetch(
-
+ 
             API_URL + "?acao=subcategorias"
-
+ 
         );
-
-        return await resposta.json();
-
-    }catch(erro){
-
-        console.error(erro);
-
-        return [];
-
-    }
-
+ 
+       const textoResposta = await resposta.text();
+ 
+       if (!textoResposta) {
+ 
+           return [];
+ 
+       }
+ 
+       try {
+ 
+           return JSON.parse(textoResposta);
+ 
+       } catch (erro) {
+ 
+           return [];
+ 
+       }
+ 
+   }catch(erro){
+ 
+       console.error(erro);
+ 
+       return [];
+ 
+   }
+ 
 }
 
 async function obterDashboard(){
-
     const resposta = await fetch(
-
+ 
         API_URL + "?acao=dashboard&t=" + Date.now(),
-
+ 
         {
-
+ 
             cache:"no-store"
-
+ 
         }
-
+ 
     );
-
-    return await resposta.json();
-
+ 
+    const textoResposta = await resposta.text();
+ 
+    if (!textoResposta) {
+ 
+        return null;
+ 
+    }
+ 
+    try {
+ 
+        return JSON.parse(textoResposta);
+ 
+    } catch (erro) {
+ 
+        return null;
+ 
+    }
+ 
 }
