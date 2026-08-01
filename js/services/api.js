@@ -2,9 +2,8 @@
    CONFIGURAÇÃO DA API
 ============================================ */
 
-const API_URL = window.location.protocol === "file:"
-   ? "http://127.0.0.1:8000/api"
-   : "/api";
+const API_URL = "https://script.google.com/macros/s/AKfycbzqqw5QNFUcbVpz9xW1wKPqfXTHFRrdYIXgR9-UBJofEa1YJXV5sgk5m8qZfvg5ghUU/exec";
+
 /* ============================================
    ENVIAR MOVIMENTAÇÃO
 ============================================ */
