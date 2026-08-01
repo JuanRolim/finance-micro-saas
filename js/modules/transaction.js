@@ -67,7 +67,9 @@ function renderTransaction() {
    INICIALIZAÇÃO
 ============================================ */
 
-function inicializarTransaction() {
+async function inicializarTransaction() {
+
+    await carregarSubcategorias();
 
    if (etapaAtual === ETAPAS.VALOR) {
 
@@ -694,19 +696,16 @@ function salvarTipo(event) {
 
 }
 
-async function salvarCategoria(event) {
+function salvarCategoria(event) {
 
-   registroAtual.categoria =
-       event.currentTarget.dataset.categoria;
+    registroAtual.categoria =
+        event.currentTarget.dataset.categoria;
 
-   subcategorias =
-       await obterSubcategorias();
+    etapaAtual = ETAPAS.RESUMO;
 
-   etapaAtual = ETAPAS.RESUMO;
+    app.innerHTML = renderTransaction();
 
-   app.innerHTML = renderTransaction();
-
-   inicializarTransaction();
+    inicializarTransaction();
 
 }
 
@@ -891,5 +890,17 @@ function renderProgress(){
    html += '</div>';
 
    return html;
+
+}
+
+async function carregarSubcategorias() {
+
+    if (subcategorias.length > 0) {
+
+        return;
+
+    }
+
+    subcategorias = await obterSubcategorias();
 
 }
