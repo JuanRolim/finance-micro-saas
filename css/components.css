@@ -1234,11 +1234,11 @@ select:focus{
    margin: 0;
    font-size: 2.25rem;
    font-weight: 700;
-   color: #fff;
+   color: #111827;;
 }
 
 .dashboard-saldo-card__meta {
-   color: rgba(255,255,255,0.9);
+   color: #111827;
    font-size: 0.875rem;
 }
 
