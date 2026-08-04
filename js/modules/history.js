@@ -22,12 +22,13 @@ function renderHistory(){
 
     return `
 
-        <div class="app-container">
+        <div class="app-container history-page">
 
             ${renderHistoryHeader()}
 
-            <main class="app-content">
+            <main class="app-content history-content">
 
+                ${renderToolbarHistorico()}
                 ${renderListaHistorico()}
 
             </main>
@@ -63,11 +64,11 @@ function renderHistoryHeader(){
 
     return `
 
-        <header class="app-header">
+        <header class="app-header history-header">
 
             <button
                 id="btnVoltarDashboard"
-                class="secondary-button">
+                class="back-button">
 
                 ←
 
@@ -83,6 +84,20 @@ function renderHistoryHeader(){
 
         </header>
 
+    `;
+
+}
+
+function renderToolbarHistorico(){
+
+    return `
+        <section class="history-toolbar">
+            <label class="history-search">
+                <span>🔎</span>
+                <input type="text" placeholder="Buscar movimentação" />
+            </label>
+            <button class="history-filter" type="button">Filtro</button>
+        </section>
     `;
 
 }
@@ -118,10 +133,13 @@ function renderListaHistorico(){
 function renderCardHistorico(item){
 
     let icone = "⚖️";
+    let valorClasse = "history-value history-value--expense";
+    let categoria = item.categoria || "Categoria";
 
     if(item.tipo === "ENTRADA"){
 
         icone = "💰";
+        valorClasse = "history-value history-value--income";
 
     }
 
@@ -145,19 +163,20 @@ function renderCardHistorico(item){
 
                 <strong>
 
-                    ${item.descricao || item.categoria}
+                    ${item.descricao || categoria}
 
                 </strong>
 
-                <p>
+                <p class="history-meta">
 
-                    ${item.data}
+                    <span>${categoria}</span>
+                    <span>${item.data}</span>
 
                 </p>
 
             </div>
 
-            <strong>
+            <strong class="${valorClasse}">
 
                 ${Number(item.valor).toLocaleString(
 
