@@ -242,7 +242,7 @@ function renderStepValor() {
 
    return `
 
-       <section class="assistant-step value-step">
+       <section class="assistant-step transaction-step transaction-step--value">
 
            <header class="transaction-header">
 
@@ -258,39 +258,45 @@ function renderStepValor() {
 
            </header>
 
-           <h2 class="step-title">
+           <div class="transaction-hero">
+               <p class="transaction-eyebrow">Etapa 1</p>
+               <h2 class="step-title">Quanto foi?</h2>
+           </div>
 
-               Quanto foi?
+           <div class="transaction-value-card card">
+               <div class="transaction-value-card__amount">
+                   <span class="currency">R$</span>
+                   <input
+                       id="valor"
+                       class="value-input"
+                       type="text"
+                       placeholder="0,00"
+                       autofocus
+                   >
+               </div>
 
-           </h2>
-
-           <div class="value-container">
-
-               <span class="currency">
-
-                   R$
-
-               </span>
-
-               <input
-                   id="valor"
-                   class="value-input"
-                   type="text"
-                   placeholder="0,00"
-                   autofocus
-               >
-
+               <div class="transaction-keypad">
+                   <button class="transaction-keypad__button" type="button">1</button>
+                   <button class="transaction-keypad__button" type="button">2</button>
+                   <button class="transaction-keypad__button" type="button">3</button>
+                   <button class="transaction-keypad__button" type="button">4</button>
+                   <button class="transaction-keypad__button" type="button">5</button>
+                   <button class="transaction-keypad__button" type="button">6</button>
+                   <button class="transaction-keypad__button" type="button">7</button>
+                   <button class="transaction-keypad__button" type="button">8</button>
+                   <button class="transaction-keypad__button" type="button">9</button>
+                   <button class="transaction-keypad__button transaction-keypad__button--muted" type="button">.</button>
+                   <button class="transaction-keypad__button" type="button">0</button>
+                   <button class="transaction-keypad__button transaction-keypad__button--muted" type="button">⌫</button>
+               </div>
            </div>
 
            ${renderParcelamentoNoValor()}
 
-           <button
-               id="btnContinuar"
-               class="primary-button">
-
-               Continuar
-
-           </button>
+           <div class="transaction-actions">
+               <button class="secondary-button" type="button" id="btnCancelar">Cancelar</button>
+               <button id="btnContinuar" class="primary-button" type="button">Continuar</button>
+           </div>
 
        </section>
 
@@ -306,37 +312,28 @@ function renderStepTipo() {
 
    return `
 
-       <section class="assistant-step">
+       <section class="assistant-step transaction-step transaction-step--choice">
 
-       <button
-           id="btnVoltar"
-           class="secondary-button">
+           <header class="transaction-header transaction-header--compact">
+               <button id="btnVoltar" class="back-button" type="button">←</button>
+               <h2>Nova movimentação</h2>
+           </header>
 
-           ← Voltar
-
-       </button>
-
-           <h2>O que deseja registrar?</h2>
-
-           <div class="option-card" data-tipo="Receita">
-
-               💰
-               <span>Receita</span>
-
+           <div class="transaction-hero transaction-hero--compact">
+               <p class="transaction-eyebrow">Etapa 2</p>
+               <h2 class="step-title">Escolha</h2>
            </div>
 
-           <div class="option-card" data-tipo="Despesa">
+           <div class="transaction-choice-grid">
+               <button class="option-card transaction-choice-card" type="button" data-tipo="Receita">
+                   <span class="transaction-choice-card__icon">↗</span>
+                   <span class="transaction-choice-card__label">Receita</span>
+               </button>
 
-               🛒
-               <span>Despesa</span>
-
-           </div>
-
-           <div class="option-card" data-tipo="Ajuste">
-
-               ⚖️
-               <span>Ajuste de saldo</span>
-
+               <button class="option-card transaction-choice-card" type="button" data-tipo="Despesa">
+                   <span class="transaction-choice-card__icon">↘</span>
+                   <span class="transaction-choice-card__label">Despesa</span>
+               </button>
            </div>
 
        </section>
@@ -353,46 +350,42 @@ function renderStepCategoria() {
 
    return `
 
-       <section class="assistant-step">
+       <section class="assistant-step transaction-step transaction-step--categories">
 
-       <button
-           id="btnVoltar"
-           class="secondary-button">
+           <header class="transaction-header transaction-header--compact">
+               <button id="btnVoltar" class="back-button" type="button">←</button>
+               <h2>Nova movimentação</h2>
+           </header>
 
-           ← Voltar
-
-       </button>
-
-           <h2>Como deseja classificar?</h2>
-
-           <p>Escolha uma categoria.</p>
-
-           <div class="option-card" data-categoria="Essencial">
-
-               🥬
-               <span>Essencial</span>
-
+           <div class="transaction-hero transaction-hero--compact">
+               <p class="transaction-eyebrow">Etapa 3</p>
+               <h2 class="step-title">Categorias</h2>
            </div>
 
-           <div class="option-card" data-categoria="Não Essencial">
+           <div class="transaction-category-list">
+               <button class="option-card transaction-category-item" type="button" data-categoria="Essencial">
+                   <span class="transaction-category-item__icon">🥬</span>
+                   <span class="transaction-category-item__label">Essencial</span>
+                   <span class="transaction-category-item__arrow">›</span>
+               </button>
 
-               🛍️
-               <span>Não Essencial</span>
+               <button class="option-card transaction-category-item" type="button" data-categoria="Não Essencial">
+                   <span class="transaction-category-item__icon">🛍️</span>
+                   <span class="transaction-category-item__label">Não Essencial</span>
+                   <span class="transaction-category-item__arrow">›</span>
+               </button>
 
-           </div>
+               <button class="option-card transaction-category-item" type="button" data-categoria="Investimentos">
+                   <span class="transaction-category-item__icon">📈</span>
+                   <span class="transaction-category-item__label">Investimentos</span>
+                   <span class="transaction-category-item__arrow">›</span>
+               </button>
 
-           <div class="option-card" data-categoria="Investimentos">
-
-               📈
-               <span>Investimentos</span>
-
-           </div>
-
-           <div class="option-card" data-categoria="Sonhos">
-
-               🎯
-               <span>Sonhos</span>
-
+               <button class="option-card transaction-category-item" type="button" data-categoria="Sonhos">
+                   <span class="transaction-category-item__icon">🎯</span>
+                   <span class="transaction-category-item__label">Sonhos</span>
+                   <span class="transaction-category-item__arrow">›</span>
+               </button>
            </div>
 
        </section>
@@ -409,19 +402,19 @@ function renderParcelamentoNoValor() {
 
    return `
 
-       <div class="detail-card card no-margin-top">
+       <div class="detail-card card transaction-parcelamento-card no-margin-top">
 
-           <label class="checkbox-card">
-
-               <input
-                   type="checkbox"
-                   id="parcelado"
-                   ${registroAtual.parcelado ? "checked" : ""}
-               >
-
-               <span>Essa compra é parcelada?</span>
-
-           </label>
+           <div class="transaction-parcelamento-card__row">
+               <label class="checkbox-card">
+                   <input
+                       type="checkbox"
+                       id="parcelado"
+                       ${registroAtual.parcelado ? "checked" : ""}
+                   >
+                   <span>Parcelado</span>
+               </label>
+               <span class="transaction-parcelamento-card__hint">À vista</span>
+           </div>
 
            <div id="containerParcelas" class="${registroAtual.parcelado ? "" : "hidden"}">
 
@@ -494,132 +487,73 @@ function renderStepResumo() {
 
    return `
 
-       <section class="assistant-step">
+       <section class="assistant-step transaction-step transaction-step--summary">
 
-       <button
-               id="btnVoltar"
-               class="secondary-button">
+           <header class="transaction-header transaction-header--compact">
+               <button id="btnVoltar" class="back-button" type="button">←</button>
+               <h2>Nova movimentação</h2>
+           </header>
 
-               ← Voltar
+           <div class="transaction-hero transaction-hero--compact">
+               <p class="transaction-eyebrow">Etapa 4</p>
+               <h2 class="step-title">Confirmação</h2>
+           </div>
 
-           </button>
+           <div class="card summary-card transaction-summary-card">
+               <div class="summary-row">
+                   <span class="summary-icon">
+                       ${registroAtual.tipo === "Receita"
+                           ? "💰"
+                           : registroAtual.tipo === "Despesa"
+                           ? "🛒"
+                           : "⚖️"}
+                   </span>
+                   <div>
+                       <h3>${registroAtual.tipo || "Tipo"}</h3>
+                       <p>${registroAtual.categoria || "Categoria"}</p>
+                   </div>
+               </div>
 
-           <h2>Confira sua movimentação</h2>
+               <div class="summary-value">
+                   R$ ${registroAtual.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+               </div>
 
-           <div class="summary-card card">
+               <div class="transaction-summary-details">
+                   <div class="transaction-summary-details__row">
+                       <span>Subcategoria</span>
+                       <strong>${registroAtual.subcategoria || "—"}</strong>
+                   </div>
+                   <div class="transaction-summary-details__row">
+                       <span>Data</span>
+                       <strong>${new Date(registroAtual.data).toLocaleDateString("pt-BR")}</strong>
+                   </div>
+                   <div class="transaction-summary-details__row">
+                       <span>Parcelamento</span>
+                       <strong>${registroAtual.tipo === "Despesa" && registroAtual.parcelado ? `${registroAtual.quantidadeParcelas}x` : "À vista"}</strong>
+                   </div>
+                   <div class="transaction-summary-details__row">
+                       <span>Observação</span>
+                       <strong>${registroAtual.observacao || "Sem observação"}</strong>
+                   </div>
+               </div>
+           </div>
 
-   <div class="summary-row">
+           <div class="summary-form">
+               <label>Subcategoria (opcional)</label>
+               <select id="subcategoria">
+                   <option value="">Selecione...</option>
+                   ${subcategorias.map(subcategoria => `
+                       <option value="${subcategoria}" ${registroAtual.subcategoria === subcategoria ? "selected" : ""}>
+                           ${subcategoria}
+                       </option>
+                   `).join("")}
+               </select>
 
-       <span class="summary-icon">
+               <label>Observação (opcional)</label>
+               <textarea id="observacao" rows="3" placeholder="Adicionar observação...">${registroAtual.observacao || ""}</textarea>
+           </div>
 
-           ${registroAtual.tipo === "Receita"
-               ? "💰"
-               : registroAtual.tipo === "Despesa"
-               ? "🛒"
-               : "⚖️"}
-
-       </span>
-
-       <div>
-
-           <h3>
-
-               ${registroAtual.tipo}
-
-           </h3>
-
-           <p>
-
-               ${registroAtual.categoria}
-
-           </p>
-
-       </div>
-
-   </div>
-
-   <div class="summary-value">
-
-       R$ ${registroAtual.valor.toLocaleString(
-           "pt-BR",
-           {
-
-               minimumFractionDigits:2
-
-           }
-       )}
-
-   </div>
-
-   ${registroAtual.tipo === "Despesa" && registroAtual.parcelado ? `
-
-       <p class="summary-detail-text">
-
-           Parcelado em ${registroAtual.quantidadeParcelas}x de R$ ${calcularValorParcela(registroAtual.valor, registroAtual.quantidadeParcelas).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-
-       </p>
-
-   ` : ""}
-
-</div>
-
-           <p class="summary-message">
-
-   ✓ Tudo certo?
-
-</p>
-
-<div class="summary-form">
-
-
-   <label>
-
-   Subcategoria (opcional)
-
-   </label>
-
-   <select id="subcategoria">
-
-   <option value="">
-
-       Selecione...
-
-   </option>
-
-   ${subcategorias.map(subcategoria => `
-
-   <option
-       value="${subcategoria}"
-       ${registroAtual.subcategoria === subcategoria ? "selected" : ""}
-   >
-       ${subcategoria}
-   </option>
-
-`).join("")}
-
-   </select>
-
-   <label>
-
-       Observação (opcional)
-
-   </label>
-
-   <textarea
-       id="observacao"
-       rows="3"
-       placeholder="Adicionar observação..."
-   >${registroAtual.observacao || ""}</textarea>
-
-</div>
-
-           <button
-               id="btnSalvar"
-               class="primary-button">
-
-               ✓ Salvar movimentação
-
-           </button>
+           <button id="btnSalvar" class="primary-button" type="button">Salvar movimentação</button>
 
        </section>
 
@@ -661,6 +595,23 @@ function salvarValor() {
 
    inicializarTransaction();
 
+}
+
+function abrirTelaSucesso() {
+   app.innerHTML = `
+       <div class="app-container transaction-success-page">
+           <main class="app-content transaction-success-content">
+               <div class="transaction-success-icon">✓</div>
+               <h2>Movimentação salva com sucesso!</h2>
+               <p>Seu registro foi cadastrado e já está disponível no dashboard.</p>
+               <button class="primary-button" id="btnIrDashboard" type="button">Ir para Dashboard</button>
+           </main>
+       </div>
+   `;
+
+   document.getElementById("btnIrDashboard").addEventListener("click", () => {
+       navegar("dashboard");
+   });
 }
 
 /* ============================================
@@ -761,7 +712,7 @@ async function finalizarRegistro(){
 
        etapaAtual = ETAPAS.VALOR;
 
-       navegar("dashboard");
+       abrirTelaSucesso();
 
    } catch (erro) {
 

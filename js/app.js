@@ -33,6 +33,15 @@ async function navegar(tela) {
             app.innerHTML = renderSettings();
             break;
 
+        case "category-details":
+            abrirCategoriaDetalhes();
+            break;
+
+        case "metas":
+            app.innerHTML = renderMetas();
+            inicializarMetas();
+            break;
+
     }
 
 }
