@@ -1554,3 +1554,255 @@ select:focus{
     font-weight:600;
 
 }
+
+/* ============================================
+   MODAL DE DETALHES
+============================================ */
+
+.modal-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    z-index: 1000;
+
+}
+
+
+.modal-overlay.hidden {
+
+    display: none;
+
+}
+
+
+.modal-detalhes {
+
+    position: relative;
+
+    width: 100%;
+
+    max-width: 420px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border-radius: 24px;
+
+    padding: 28px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.20);
+
+    animation:
+        modalEntrada 0.18s ease-out;
+
+}
+
+
+@keyframes modalEntrada {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(10px)
+            scale(0.98);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0)
+            scale(1);
+
+    }
+
+}
+
+.modal-header {
+
+    text-align: center;
+
+    padding: 8px 30px 24px;
+
+}
+
+
+.modal-label {
+
+    display: block;
+
+    font-size: 14px;
+
+    color: #6b7280;
+
+    margin-bottom: 8px;
+
+}
+
+
+.modal-header h2 {
+
+    margin: 0;
+
+    font-size: 32px;
+
+    font-weight: 700;
+
+    color: #111827;
+
+}
+
+
+.modal-tipo {
+
+    display: inline-block;
+
+    margin-top: 8px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: #6b7280;
+
+}
+
+.modal-detalhes-lista {
+
+    border-top: 1px solid #e5e7eb;
+
+}
+
+
+.modal-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 20px;
+
+    padding: 16px 0;
+
+    border-bottom:
+        1px solid #f0f0f0;
+
+}
+
+
+.modal-item span {
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+}
+
+
+.modal-item strong {
+
+    color: #111827;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    text-align: right;
+
+    max-width: 60%;
+
+    overflow-wrap: anywhere;
+
+}
+
+.modal-close {
+
+    position: absolute;
+
+    top: 14px;
+
+    right: 14px;
+
+    width: 36px;
+
+    height: 36px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #f3f4f6;
+
+    color: #111827;
+
+    font-size: 24px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+}
+
+
+.modal-button {
+
+    width: 100%;
+
+    margin-top: 24px;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #111827;
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+}
+
+.history-card {
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+
+}
+
+
+.history-card:active {
+
+    transform: scale(0.98);
+
+}

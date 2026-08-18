@@ -23,7 +23,7 @@ let registroAtual = {
 
    tipo: "",
 
-   descricao: "",
+   pagamento: "À vista",
    categoria: "",
    subcategoria: "",
    valor: 0,
@@ -98,16 +98,25 @@ async function inicializarTransaction() {
        }
 
        const checkboxParcelado =
-           document.getElementById("parcelado");
+    document.getElementById("parcelado");
 
-       if (checkboxParcelado) {
+if (checkboxParcelado) {
 
-           checkboxParcelado.addEventListener(
-               "change",
-               atualizarVisibilidadeParcelas
-           );
+    checkboxParcelado.addEventListener(
+        "change",
+        () => {
 
-       }
+            atualizarVisibilidadeParcelas();
+
+            registroAtual.pagamento =
+                checkboxParcelado.checked
+                    ? "Parcelado"
+                    : "À vista";
+
+        }
+    );
+
+}
 
        const selectParcelas =
            document.getElementById("quantidadeParcelas");
