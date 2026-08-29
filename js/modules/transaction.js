@@ -699,54 +699,78 @@ function voltarEtapa(){
 
 async function finalizarRegistro(){
 
-   registroAtual.subcategoria =
-       document.getElementById("subcategoria").value.trim();
+    registroAtual.subcategoria =
+        document.getElementById("subcategoria").value.trim();
 
-   registroAtual.observacao =
-       document.getElementById("observacao").value.trim();
+    registroAtual.observacao =
+        document.getElementById("observacao").value.trim();
 
-   const registrosParaSalvar = montarRegistrosParaSalvar(registroAtual);
+    console.log("REGISTRO ANTES DO ENVIO:");
+    console.log(registroAtual);
 
-   try {
+    const registrosParaSalvar =
+        montarRegistrosParaSalvar(registroAtual);
 
-       for (const registroParaSalvar of registrosParaSalvar) {
+    console.log("REGISTROS PARA SALVAR:");
+    console.log(registrosParaSalvar);
 
-           await salvarNaPlanilha(registroParaSalvar);
+    try {
 
-       }
+        for (const registroParaSalvar of registrosParaSalvar) {
 
-       alert("Movimentação cadastrada!");
+            console.log("ENVIANDO:");
+            console.log(registroParaSalvar);
 
-       resetRegistro();
+            await salvarNaPlanilha(registroParaSalvar);
 
-       etapaAtual = ETAPAS.VALOR;
+        }
 
-       abrirTelaSucesso();
+        alert("Movimentação cadastrada!");
 
-   } catch (erro) {
+        resetRegistro();
 
-       console.error("Erro ao salvar a movimentação:", erro);
-       alert("Não foi possível cadastrar a movimentação.");
+        etapaAtual = ETAPAS.VALOR;
 
-   }
+        abrirTelaSucesso();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao salvar a movimentação:",
+            erro
+        );
+
+        alert(
+            "Não foi possível cadastrar a movimentação."
+        );
+
+    }
 
 }
 
 function resetRegistro(){
 
-   registroAtual = {
+    registroAtual = {
 
-       data: new Date(),
-       tipo: null,
-       descricao: "",
-       categoria: null,
-       subcategoria: null,
-       valor: null,
-       observacao: "",
-       parcelado: false,
-       quantidadeParcelas: 1
+        data: new Date(),
 
-   };
+        tipo: "",
+
+        pagamento: "À vista",
+
+        categoria: "",
+
+        subcategoria: "",
+
+        valor: 0,
+
+        observacao: "",
+
+        parcelado: false,
+
+        quantidadeParcelas: 1
+
+    };
 
 }
 
