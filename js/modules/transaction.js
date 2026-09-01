@@ -357,49 +357,111 @@ function renderStepTipo() {
 
 function renderStepCategoria() {
 
-   return `
+    const categorias =
+        registroAtual.tipo === "Receita"
+            ? [
+                {
+                    nome: "Salário",
+                    icone: "💰"
+                },
+                {
+                    nome: "Extra",
+                    icone: "✨"
+                },
+                {
+                    nome: "Reembolso",
+                    icone: "↩️"
+                }
+            ]
+            : [
+                {
+                    nome: "Essencial",
+                    icone: "🥬"
+                },
+                {
+                    nome: "Não Essencial",
+                    icone: "🛍️"
+                },
+                {
+                    nome: "Investimentos",
+                    icone: "📈"
+                },
+                {
+                    nome: "Sonhos",
+                    icone: "🎯"
+                }
+            ];
 
-       <section class="assistant-step transaction-step transaction-step--categories">
+    return `
 
-           <header class="transaction-header transaction-header--compact">
-               <button id="btnVoltar" class="back-button" type="button">←</button>
-               <h2>Nova movimentação</h2>
-           </header>
+        <section class="assistant-step transaction-step transaction-step--categories">
 
-           <div class="transaction-hero transaction-hero--compact">
-               <p class="transaction-eyebrow">Etapa 3</p>
-               <h2 class="step-title">Categorias</h2>
-           </div>
+            <header class="transaction-header transaction-header--compact">
 
-           <div class="transaction-category-list">
-               <button class="option-card transaction-category-item" type="button" data-categoria="Essencial">
-                   <span class="transaction-category-item__icon">🥬</span>
-                   <span class="transaction-category-item__label">Essencial</span>
-                   <span class="transaction-category-item__arrow">›</span>
-               </button>
+                <button
+                    id="btnVoltar"
+                    class="back-button"
+                    type="button">
 
-               <button class="option-card transaction-category-item" type="button" data-categoria="Não Essencial">
-                   <span class="transaction-category-item__icon">🛍️</span>
-                   <span class="transaction-category-item__label">Não Essencial</span>
-                   <span class="transaction-category-item__arrow">›</span>
-               </button>
+                    ←
 
-               <button class="option-card transaction-category-item" type="button" data-categoria="Investimentos">
-                   <span class="transaction-category-item__icon">📈</span>
-                   <span class="transaction-category-item__label">Investimentos</span>
-                   <span class="transaction-category-item__arrow">›</span>
-               </button>
+                </button>
 
-               <button class="option-card transaction-category-item" type="button" data-categoria="Sonhos">
-                   <span class="transaction-category-item__icon">🎯</span>
-                   <span class="transaction-category-item__label">Sonhos</span>
-                   <span class="transaction-category-item__arrow">›</span>
-               </button>
-           </div>
+                <h2>Nova movimentação</h2>
 
-       </section>
+            </header>
 
-   `;
+
+            <div class="transaction-hero transaction-hero--compact">
+
+                <p class="transaction-eyebrow">
+                    Etapa 3
+                </p>
+
+                <h2 class="step-title">
+                    Categorias
+                </h2>
+
+            </div>
+
+
+            <div class="transaction-category-list">
+
+                ${categorias.map(categoria => `
+
+                    <button
+                        class="option-card transaction-category-item"
+                        type="button"
+                        data-categoria="${categoria.nome}"
+                    >
+
+                        <span class="transaction-category-item__icon">
+
+                            ${categoria.icone}
+
+                        </span>
+
+                        <span class="transaction-category-item__label">
+
+                            ${categoria.nome}
+
+                        </span>
+
+                        <span class="transaction-category-item__arrow">
+
+                            ›
+
+                        </span>
+
+                    </button>
+
+                `).join("")}
+
+            </div>
+
+        </section>
+
+    `;
 
 }
 
