@@ -28,6 +28,7 @@ let registroAtual = {
    subcategoria: "",
    valor: 0,
    observacao: "",
+   idMeta: "",
    parcelado: false,
    quantidadeParcelas: 1
 
@@ -68,6 +69,8 @@ function renderTransaction() {
 ============================================ */
 
 async function inicializarTransaction() {
+
+    metas = await buscarMetas();
 
     await carregarSubcategorias();
 
@@ -196,23 +199,40 @@ if (checkboxParcelado) {
 
    if (etapaAtual === ETAPAS.RESUMO) {
 
-       const btnSalvar =
-           document.getElementById("btnSalvar");
+    const btnSalvar =
+        document.getElementById("btnSalvar");
 
-       btnSalvar.addEventListener(
-           "click",
-           finalizarRegistro
-       );
+    btnSalvar.addEventListener(
+        "click",
+        finalizarRegistro
+    );
 
-       const btnVoltar =
-           document.getElementById("btnVoltar");
+    const btnVoltar =
+        document.getElementById("btnVoltar");
 
-       btnVoltar.addEventListener(
-           "click",
-           voltarEtapa
-       );
+    btnVoltar.addEventListener(
+        "click",
+        voltarEtapa
+    );
 
-   }
+    const selectMeta =
+        document.getElementById("metaMovimentacao");
+
+    if (selectMeta) {
+
+        selectMeta.addEventListener(
+            "change",
+            (event) => {
+
+                registroAtual.idMeta =
+                    event.target.value;
+
+            }
+        );
+
+    }
+
+}
 
 }
 
@@ -609,16 +629,26 @@ function renderStepResumo() {
                </div>
            </div>
 
-           <div class="summary-form">
-               <label>Subcategoria (opcional)</label>
-               <select id="subcategoria">
-                   <option value="">Selecione...</option>
-                   ${subcategorias.map(subcategoria => `
-                       <option value="${subcategoria}" ${registroAtual.subcategoria === subcategoria ? "selected" : ""}>
-                           ${subcategoria}
-                       </option>
-                   `).join("")}
-               </select>
+           ${!registroAtual.idMeta ? `
+    <div class="form-group">
+        <label for="subcategoria">Subcategoria</label>
+        <select id="subcategoria">
+            <option value="">Selecione uma subcategoria</option>
+            ${subcategorias.map(subcategoria => `
+                <option value="${subcategoria}">${subcategoria}</option>
+            `).join("")}
+        </select>
+    </div>
+` : ""}
+
+               ${registroAtual.categoria === "Sonhos" ? `
+    <div class="form-group">
+        <label for="metaMovimentacao">Qual sonho?</label>
+        <select id="metaMovimentacao">
+            ${obterOpcoesMetas(registroAtual.idMeta)}
+        </select>
+    </div>
+` : ""}
 
                <label>Observação (opcional)</label>
                <textarea id="observacao" rows="3" placeholder="Adicionar observação...">${registroAtual.observacao || ""}</textarea>
@@ -638,34 +668,33 @@ function renderStepResumo() {
 
 function salvarValor() {
 
-   const campoValor = document.getElementById("valor");
+    const campoValor = document.getElementById("valor");
 
-   const valor = Number(
+    const valor = Number(
+        campoValor.value
+            .replace(".", "")
+            .replace(",", ".")
+    );
 
-   campoValor.value
+    if (isNaN(valor) || valor <= 0) {
+        alert("Informe um valor válido.");
+        return;
+    }
 
-       .replace(".", "")
+    registroAtual.valor = valor;
 
-       .replace(",", ".")
+    // Se veio do botão "ATUALIZAR" de uma meta,
+    // tipo, categoria e meta já estão definidos.
+    if (registroAtual.idMeta) {
+        etapaAtual = ETAPAS.RESUMO;
+    } else {
+        // Fluxo normal
+        etapaAtual = ETAPAS.TIPO;
+    }
 
-   );
+    app.innerHTML = renderTransaction();
 
-   if (isNaN(valor) || valor <= 0) {
-
-       alert("Informe um valor válido.");
-
-       return;
-
-   }
-
-   registroAtual.valor = valor;
-
-   etapaAtual = ETAPAS.TIPO;
-
-   app.innerHTML = renderTransaction();
-
-   inicializarTransaction();
-
+    inicializarTransaction();
 }
 
 function abrirTelaSucesso() {
@@ -758,23 +787,50 @@ function voltarEtapa(){
 
 }
 
+async function finalizarRegistro() {
 
-async function finalizarRegistro(){
+    const campoSubcategoria =
+        document.getElementById("subcategoria");
 
-    registroAtual.subcategoria =
-        document.getElementById("subcategoria").value.trim();
+    if (campoSubcategoria) {
+        registroAtual.subcategoria =
+            campoSubcategoria.value.trim();
+    } else {
+        registroAtual.subcategoria = "";
+    }
 
-    registroAtual.observacao =
-        document.getElementById("observacao").value.trim();
+
+    const selectMeta =
+        document.getElementById("metaMovimentacao");
+
+    if (selectMeta) {
+        registroAtual.idMeta =
+            selectMeta.value;
+    }
+
+
+    const campoObservacao =
+        document.getElementById("observacao");
+
+    if (campoObservacao) {
+        registroAtual.observacao =
+            campoObservacao.value.trim();
+    } else {
+        registroAtual.observacao = "";
+    }
+
 
     console.log("REGISTRO ANTES DO ENVIO:");
     console.log(registroAtual);
 
+
     const registrosParaSalvar =
         montarRegistrosParaSalvar(registroAtual);
 
+
     console.log("REGISTROS PARA SALVAR:");
     console.log(registrosParaSalvar);
+
 
     try {
 
@@ -787,13 +843,16 @@ async function finalizarRegistro(){
 
         }
 
+
         alert("Movimentação cadastrada!");
+
 
         resetRegistro();
 
         etapaAtual = ETAPAS.VALOR;
 
         abrirTelaSucesso();
+
 
     } catch (erro) {
 
@@ -809,6 +868,7 @@ async function finalizarRegistro(){
     }
 
 }
+
 
 function resetRegistro(){
 
@@ -827,6 +887,8 @@ function resetRegistro(){
         valor: 0,
 
         observacao: "",
+
+        idMeta: "",
 
         parcelado: false,
 
@@ -949,4 +1011,26 @@ async function carregarSubcategorias() {
 
     subcategorias = await obterSubcategorias();
 
+}
+
+function obterOpcoesMetas(idMetaSelecionada = "") {
+
+    const metasAtivas = obterMetasAtivas();
+
+    if (!metasAtivas.length) {
+        return `<option value="">Nenhuma meta ativa cadastrada</option>`;
+    }
+
+    return `
+        <option value="">Selecione o sonho</option>
+
+        ${metasAtivas.map(meta => `
+            <option
+                value="${meta.idMeta}"
+                ${String(meta.idMeta) === String(idMetaSelecionada) ? "selected" : ""}
+            >
+                ${meta.nome}
+            </option>
+        `).join("")}
+    `;
 }

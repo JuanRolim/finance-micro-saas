@@ -6,46 +6,62 @@ async function navegar(tela) {
 
         case "dashboard":
 
-    app.innerHTML = renderDashboard();
+            app.innerHTML = renderDashboard();
 
-    await inicializarDashboard();
+            await inicializarDashboard();
 
-    break;
+            break;
+
 
         case "transaction":
 
             app.innerHTML = renderTransaction();
+
             inicializarTransaction();
+
             break;
+
 
         case "history":
 
-    await carregarHistorico();
+            await carregarHistorico();
 
-    app.innerHTML = renderHistory();
+            app.innerHTML = renderHistory();
 
-    inicializarHistory();
+            inicializarHistory();
 
-    break;
+            break;
+
 
         case "settings":
 
             app.innerHTML = renderSettings();
+
             break;
+
 
         case "category-details":
+
             abrirCategoriaDetalhes();
+
             break;
 
+
         case "metas":
+
             app.innerHTML = renderMetas();
-            inicializarMetas();
+
+            await inicializarGoals();
+
             break;
 
     }
 
 }
 
+
 document.addEventListener("DOMContentLoaded", () => {
+
     navegar("dashboard");
+
 });

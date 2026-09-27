@@ -235,7 +235,7 @@ function renderDashboard() {
                     <span class="bottom-nav__icon bottom-nav__icon--center">+</span>
                 </button>
 
-                <button class="bottom-nav__item" type="button">
+                <button class="bottom-nav__item" type="button" id="btnMetas">
                     <span class="bottom-nav__icon">◎</span>
                     <span class="bottom-nav__label">Metas</span>
                 </button>
@@ -277,6 +277,18 @@ async function inicializarDashboard(){
             navegar("history");
 
         });
+
+    /* ==========================
+   BOTÃO METAS
+========================== */
+
+document
+    .getElementById("btnMetas")
+    .addEventListener("click", () => {
+
+        navegar("metas");
+
+    });
 
     /* ==========================
        CARREGA DADOS

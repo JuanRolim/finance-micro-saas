@@ -1806,3 +1806,744 @@ select:focus{
     transform: scale(0.98);
 
 }
+
+/* =========================================================
+   METAS FINALIZADAS
+   ========================================================= */
+
+.metas-finalizadas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.meta-finalizada-card {
+    padding: 16px;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.meta-finalizada-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.meta-finalizada-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.meta-finalizada-status {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.meta-finalizada-status.concluida {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.meta-finalizada-status.encerrada {
+    background: #f1f1f1;
+    color: #777;
+}
+
+.meta-finalizada-values {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.meta-finalizada-values div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.meta-finalizada-values small {
+    font-size: 11px;
+    color: #888;
+}
+
+.meta-finalizada-values strong {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.meta-finalizada-values div:last-child strong {
+    font-size: 13px;
+    color: #555;
+}
+
+/* =========================================================
+   REDESIGN — TELA DE METAS
+   ========================================================= */
+
+.metas-container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 48px;
+}
+
+/* ---------------------------------------------------------
+   CABEÇALHO
+   --------------------------------------------------------- */
+
+.metas-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.metas-header h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.metas-header p {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.btn-nova-meta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-nova-meta:hover {
+    opacity: 0.9;
+}
+
+.btn-nova-meta:active {
+    transform: scale(0.98);
+}
+
+
+/* ---------------------------------------------------------
+   SEÇÕES
+   --------------------------------------------------------- */
+
+.metas-section {
+    margin-bottom: 42px;
+}
+
+.metas-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.metas-section-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+
+/* ---------------------------------------------------------
+   GRID
+   --------------------------------------------------------- */
+
+.metas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+
+/* ---------------------------------------------------------
+   CARD DE META
+   --------------------------------------------------------- */
+
+.meta-card {
+    padding: 20px;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.meta-card:hover {
+    transform: translateY(-2px);
+    border-color: #ddd;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+.meta-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.meta-card-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+    color: #222;
+}
+
+.meta-card-header > span {
+    flex-shrink: 0;
+    font-size: 15px;
+    font-weight: 750;
+    letter-spacing: -0.2px;
+}
+
+
+/* ---------------------------------------------------------
+   BARRA DE PROGRESSO
+   --------------------------------------------------------- */
+
+.meta-progress {
+    width: 100%;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    border-radius: 999px;
+    background: #eeeeee;
+}
+
+.meta-progress-bar {
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: currentColor;
+    transition: width 0.4s ease;
+}
+
+
+/* ---------------------------------------------------------
+   VALORES
+   --------------------------------------------------------- */
+
+.meta-card-values {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.meta-card-values div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.meta-card-values small {
+    font-size: 11px;
+    color: #888;
+}
+
+.meta-card-values strong {
+    font-size: 14px;
+    font-weight: 650;
+    color: #222;
+}
+
+.meta-card-values div:first-child strong {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   AÇÕES
+   --------------------------------------------------------- */
+
+.meta-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid #eeeeee;
+}
+
+.btn-atualizar-meta {
+    flex: 1;
+    min-height: 38px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.btn-atualizar-meta:hover {
+    opacity: 0.9;
+}
+
+.btn-atualizar-meta:active {
+    transform: scale(0.98);
+}
+
+.btn-fechar-meta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #999;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.btn-fechar-meta:hover {
+    background: #f3f3f3;
+    color: #555;
+}
+
+
+/* ---------------------------------------------------------
+   ESTADO VAZIO
+   --------------------------------------------------------- */
+
+.metas-vazio {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 28px 20px;
+    border: 1px dashed #ddd;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: #999;
+}
+
+
+/* ---------------------------------------------------------
+   LISTA DE DESEJOS
+   --------------------------------------------------------- */
+
+.meta-card-desejo {
+    padding: 18px;
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    background: #fafafa;
+    box-shadow: none;
+}
+
+.meta-card-desejo:hover {
+    transform: translateY(-1px);
+    border-color: #e2e2e2;
+    box-shadow: none;
+}
+
+.meta-card-desejo .meta-card-header {
+    margin-bottom: 14px;
+}
+
+.meta-card-desejo .meta-card-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #444;
+}
+
+.meta-card-desejo .meta-card-header > span {
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: #eeeeee;
+    color: #777;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.meta-card-desejo .meta-card-values {
+    display: block;
+    margin: 0;
+}
+
+.meta-card-desejo .meta-card-values small {
+    font-size: 10px;
+}
+
+.meta-card-desejo .meta-card-values strong {
+    font-size: 15px;
+    font-weight: 650;
+    color: #444;
+}
+
+
+/* ---------------------------------------------------------
+   HISTÓRICO
+   --------------------------------------------------------- */
+
+.metas-finalizadas-trigger {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.btn-ver-metas-finalizadas {
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: #777;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.btn-ver-metas-finalizadas:hover {
+    color: #333;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVO
+   --------------------------------------------------------- */
+
+@media (max-width: 700px) {
+
+    .metas-container {
+        padding: 24px 16px 36px;
+    }
+
+    .metas-header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 32px;
+    }
+
+    .metas-header h1 {
+        font-size: 26px;
+    }
+
+    .btn-nova-meta {
+        width: 100%;
+    }
+
+    .metas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .meta-card-values {
+        gap: 8px;
+    }
+
+}
+
+/* =========================================================
+   MODAL — NOVA META
+   ========================================================= */
+
+.modal-meta {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.modal-meta[hidden] {
+    display: none;
+}
+
+.modal-meta__content {
+    width: 100%;
+    max-width: 460px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.16);
+}
+
+.modal-meta__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.modal-meta__eyebrow {
+    margin: 0 0 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #999;
+}
+
+.modal-meta__header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+}
+
+.modal-meta__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #888;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.modal-meta__close:hover {
+    background: #f3f3f3;
+    color: #333;
+}
+
+
+/* ---------------------------------------------------------
+   CAMPOS
+   --------------------------------------------------------- */
+
+#formNovaMeta {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#formNovaMeta .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+#formNovaMeta label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+#formNovaMeta input,
+#formNovaMeta select {
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    padding: 0 13px;
+    border: 1px solid #dedede;
+    border-radius: 10px;
+    outline: none;
+    background: #fff;
+    color: #222;
+    font-family: inherit;
+    font-size: 14px;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+#formNovaMeta input::placeholder {
+    color: #aaa;
+}
+
+#formNovaMeta input:focus,
+#formNovaMeta select:focus {
+    border-color: #999;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ---------------------------------------------------------
+   AÇÕES DO MODAL
+   --------------------------------------------------------- */
+
+.modal-meta__actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #eeeeee;
+}
+
+.modal-meta__actions .btn-secundario {
+    min-height: 42px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: #777;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modal-meta__actions .btn-secundario:hover {
+    background: #f4f4f4;
+    color: #333;
+}
+
+.modal-meta__actions .btn-nova-meta {
+    min-height: 42px;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL — METAS FINALIZADAS
+   --------------------------------------------------------- */
+
+.modal-metas-finalizadas {
+    max-width: 620px;
+}
+
+.modal-metas-finalizadas .modal-meta__header {
+    margin-bottom: 20px;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVO
+   --------------------------------------------------------- */
+
+@media (max-width: 500px) {
+
+    .modal-meta {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal-meta__content {
+        max-height: 90vh;
+        padding: 24px 20px;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .modal-meta__actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-meta__actions button {
+        width: 100%;
+    }
+
+}
+
+/* =========================================
+   AÇÕES DOS DESEJOS
+   ========================================= */
+
+.meta-desejo-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.btn-transformar-desejo {
+    flex: 1;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid #222;
+    border-radius: 9px;
+    background: #222;
+    color: #fff;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.btn-transformar-desejo:hover {
+    background: #333;
+    border-color: #333;
+    transform: translateY(-1px);
+}
+
+.btn-transformar-desejo:active {
+    transform: translateY(0);
+}
+
+.btn-concluir-desejo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid #dedede;
+    border-radius: 9px;
+    background: #fff;
+    color: #777;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.btn-concluir-desejo:hover {
+    background: #f4f4f4;
+    border-color: #ccc;
+    color: #444;
+    transform: translateY(-1px);
+}
+
+.btn-concluir-desejo:active {
+    transform: translateY(0);
+}

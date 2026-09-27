@@ -173,3 +173,147 @@ async function obterDashboard(){
     }
  
 }
+
+async function buscarMetas() {
+    try {
+        const resposta = await fetch(`${API_URL}?acao=metas`);
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao consultar metas.");
+        }
+
+        const metas = await resposta.json();
+
+        return metas;
+    } catch (erro) {
+        console.error("Erro ao buscar metas:", erro);
+        throw erro;
+    }
+}
+
+async function criarMeta(meta) {
+
+    try {
+
+        const resposta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                acao: "criarMeta",
+                meta: JSON.stringify(meta)
+            })
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao criar meta.");
+        }
+
+        const resultado = await resposta.json();
+
+        return resultado;
+
+    } catch (erro) {
+
+        console.error("Erro ao criar meta:", erro);
+
+        throw erro;
+
+    }
+
+}
+
+async function encerrarMeta(idMeta) {
+    try {
+        const resposta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                acao: "encerrarMeta",
+                idMeta: idMeta
+            })
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao encerrar meta.");
+        }
+
+        const resultado = await resposta.json();
+
+        return resultado;
+
+    } catch (erro) {
+        console.error("Erro ao encerrar meta:", erro);
+        throw erro;
+    }
+}
+
+async function concluirDesejo(idMeta) {
+
+    try {
+
+        const resposta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                acao: "concluirDesejo",
+                idMeta: idMeta
+            })
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao concluir desejo.");
+        }
+
+        const resultado = await resposta.json();
+
+        return resultado;
+
+    } catch (erro) {
+
+        console.error("Erro ao concluir desejo:", erro);
+
+        throw erro;
+    }
+}
+
+async function transformarDesejoEmMeta(idMeta) {
+
+    try {
+
+        const resposta = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                acao: "transformarDesejoEmMeta",
+                idMeta: idMeta
+            })
+        });
+
+        if (!resposta.ok) {
+            throw new Error(
+                "Erro ao transformar desejo em meta."
+            );
+        }
+
+        const resultado = await resposta.json();
+
+        return resultado;
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao transformar desejo em meta:",
+            erro
+        );
+
+        throw erro;
+    }
+}
