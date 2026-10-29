@@ -928,7 +928,14 @@ async function finalizarRegistro() {
             const historicoAtual = await obterHistorico();
             verificandoResultado = false;
             const idsExistentes = new Set(
-                historicoAtual.map((item) => item.idMovimentacao).filter(Boolean)
+                historicoAtual
+                    .filter((item) =>
+                        item &&
+                        Number.isFinite(Number(item.valor)) &&
+                        Number(item.valor) > 0
+                    )
+                    .map((item) => item.idMovimentacao)
+                    .filter(Boolean)
             );
             registrosParaSalvar = registrosParaSalvar.filter(
                 (item) => !idsExistentes.has(item.idMovimentacao)

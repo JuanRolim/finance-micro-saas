@@ -270,7 +270,10 @@ async function verificarMovimentacaoNoHistorico(url, segredo, idMovimentacao) {
         throw new Error("O histórico retornou um formato inválido.");
     }
     return dados.some((item) =>
-        item && item.idMovimentacao === idMovimentacao
+        item &&
+        item.idMovimentacao === idMovimentacao &&
+        Number.isFinite(Number(item.valor)) &&
+        Number(item.valor) > 0
     );
 }
 

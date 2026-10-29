@@ -437,3 +437,34 @@ test("confirms a movement from history when the Apps Script write response is ma
         global.fetch = originalFetch;
     }
 });
+
+test("does not confirm a partial movement from history", async () => {
+    const originalFetch = global.fetch;
+    const idMovimentacao = "movement-partial-operation-001";
+    let calls = 0;
+    global.fetch = async () => {
+        calls += 1;
+        return calls === 1
+            ? new Response("", { status: 200 })
+            : new Response(JSON.stringify([{
+                idMovimentacao,
+                valor: 0
+            }]), { status: 200 });
+    };
+    try {
+        const res = await executar(criarRequisicao({
+            method: "POST",
+            path: "/api/finance",
+            body: new URLSearchParams({
+                registro: JSON.stringify({ idMovimentacao }),
+                idOperacao: idMovimentacao
+            }).toString()
+        }));
+
+        assert.equal(res.statusCode, 502);
+        assert.equal(res.json().outcomeUnknown, true);
+        assert.equal(calls, 2);
+    } finally {
+        global.fetch = originalFetch;
+    }
+});

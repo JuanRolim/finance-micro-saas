@@ -217,7 +217,7 @@ test("creates a meta idempotently using the persisted operation id", () => {
     const context = criarContexto();
     const sheet = new FakeSheet("METAS");
     const spreadsheet = { getSheetByName: () => sheet };
-    context.SpreadsheetApp = { openById: () => spreadsheet };
+    context.SpreadsheetApp = { flush() {}, openById: () => spreadsheet };
     const meta = {
         nome: "Meta teste",
         valorMeta: 250,
@@ -292,7 +292,7 @@ test("retries a movement with the same id by repairing the existing row", () => 
     const spreadsheet = {
         getSheetByName: () => sheet
     };
-    context.SpreadsheetApp = { openById: () => spreadsheet };
+    context.SpreadsheetApp = { flush() {}, openById: () => spreadsheet };
     context.obterConfiguracaoClassificacao = () => ({});
     context.normalizarMovimentacao = (record) => ({
         data: new Date(2026, 9, 4),
@@ -317,27 +317,73 @@ test("retries a movement with the same id by repairing the existing row", () => 
     context.obterNomeAbaMes = () => sheet;
     context.obterUltimaLinhaMovimentacoes = (aba) => aba.getLastRow();
 
-    const first = context.salvarMovimentacao({
-        idMovimentacao: "fixed-id",
-        valor: 100,
-        observacao: "Primeira tentativa"
-    });
+    const obterIntervaloOriginal = sheet.getRange.bind(sheet);
+    let ignorarGravacaoDoValorUmaVez = true;
+    sheet.getRange = function (linha, coluna, quantidadeLinhas, quantidadeColunas) {
+        const intervalo = obterIntervaloOriginal(
+            linha,
+            coluna,
+            quantidadeLinhas,
+            quantidadeColunas
+        );
+        if (
+            linha === 2 &&
+            coluna === 3 &&
+            quantidadeLinhas === 1 &&
+            quantidadeColunas === 4
+        ) {
+            const setValuesOriginal = intervalo.setValues;
+            intervalo.setValues = (valores) => {
+                if (ignorarGravacaoDoValorUmaVez) {
+                    ignorarGravacaoDoValorUmaVez = false;
+                    return intervalo;
+                }
+                return setValuesOriginal(valores);
+            };
+        }
+        return intervalo;
+    };
+
+    assert.throws(
+        () => context.salvarMovimentacao({
+            idMovimentacao: "fixed-id",
+            valor: 100,
+            observacao: "Primeira tentativa"
+        }),
+        /gravação não foi confirmada.*F2.*C2/
+    );
+    assert.equal(sheet.getRange(2, 30).getValue(), "fixed-id");
+
     const retry = context.salvarMovimentacao({
         idMovimentacao: "fixed-id",
         valor: 125,
         observacao: "Repetição corrigida"
     });
 
-    assert.equal(first.success, true);
     assert.equal(retry.success, true);
     assert.equal(retry.duplicadoIgnorado, true);
     assert.equal(sheet.getLastRow(), 2);
     assert.equal(sheet.getRange(2, 6).getValue(), 125);
+    assert.equal(sheet.getRange(2, 4).getValue(), "");
+    assert.equal(sheet.getRange(2, 5).getValue(), "");
+    assert.equal(sheet.getRange(2, 26).getValue(), "Alimentação");
+    assert.equal(sheet.getRange(2, 27).getValue(), "Mercado");
     assert.equal(
         sheet.formulas[1][6],
         '=IF(B2="Saída",-ABS(F2),ABS(F2))'
     );
     assert.equal(sheet.getRange(2, 30).getValue(), "fixed-id");
+});
+
+test("does not treat a partial movement row as a complete history entry", () => {
+    const context = criarContexto();
+    const incomplete = [new Date(2026, 9, 29), "Saída", "À vista"];
+    incomplete[29] = "partial-movement-id";
+    const complete = [new Date(2026, 9, 29), "Saída", "À vista"];
+    complete[5] = 0.01;
+
+    assert.equal(context.linhaHistoricaCompleta(incomplete), false);
+    assert.equal(context.linhaHistoricaCompleta(complete), true);
 });
 
 test("repairs missing adjusted-value formulas for existing movement rows", () => {
@@ -419,7 +465,7 @@ test("retries category and subcategory creation idempotently", () => {
     const spreadsheet = {
         getSheetByName: (name) => name === "CATEGORIASCONFIGS" ? sheet : null
     };
-    context.SpreadsheetApp = { openById: () => spreadsheet };
+    context.SpreadsheetApp = { flush() {}, openById: () => spreadsheet };
     context.garantirConfiguracaoClassificacao = () => sheet;
 
     const criada = context.gerenciarClassificacao({

@@ -1,4 +1,4 @@
-const ID_PLANILHA = "1kjYHK63hqPfeYp1KlURt0y7yGzK9iFZ7Bxr5ySSceio";
+const ID_PLANILHA = "10m0FTn8xru6bhF0eDvuqwiVerp8ym05IEf_gMaXvySc";
 
 const MESES = {
 
@@ -1022,59 +1022,202 @@ function gravarMovimentacaoNaLinha(
   aba, linha, registro, normalizada, classificacao, cabecalhos
 ) {
   const idMovimentacao = normalizada.idMovimentacao;
-  aba.getRange(
-    linha,
-    COLUNAS_CLASSIFICACAO.idMovimentacao
-  ).setValue(idMovimentacao);
   const categoriaLegada = normalizada.legado
     ? String(registro.categoria || "")
-    : classificacao.categoria;
+    : "";
   const subcategoriaLegada = normalizada.legado
     ? String(registro.subcategoria || "")
-    : classificacao.subcategoria;
+    : "";
   const nomeColunaC = cabecalhos[2];
 
-  aba.getRange(linha, 1).setValue(normalizada.data);
-  aba.getRange(linha, 2).setValue(classificacao.fluxo);
-  if (nomeColunaC === "pagamento") {
-    aba.getRange(linha, 3).setValue(normalizada.pagamento);
-  }
-  aba.getRange(linha, 4).setValue(categoriaLegada);
-  aba.getRange(linha, 5).setValue(subcategoriaLegada);
-  aba.getRange(linha, 6).setValue(normalizada.valor);
-  aba.getRange(linha, 7).setFormula(
-    '=IF(B' + linha + '="Saída",-ABS(F' + linha + '),ABS(F' + linha + '))'
-  );
-  aba.getRange(linha, 8).setValue(normalizada.observacao);
-
   const nomeColunaI = cabecalhos[8];
-  if (nomeColunaI === "id" || nomeColunaI === "id_movimentacao") {
-    aba.getRange(linha, 9).setValue(idMovimentacao);
+  const formulaValorAjustado =
+    '=IF(B' + linha + '="Saída",-ABS(F' + linha + '),ABS(F' + linha + '))';
+  let etapa = "reservar identificador";
+
+  try {
+    aba.getRange(
+      linha,
+      COLUNAS_CLASSIFICACAO.idMovimentacao
+    ).setValue(idMovimentacao);
+
+    etapa = "gravar data e fluxo";
+    aba.getRange(linha, 1, 1, 2).setValues([[
+      normalizada.data,
+      classificacao.fluxo
+    ]]);
+
+    etapa = "gravar pagamento, classificação legada e valor";
+    if (nomeColunaC === "pagamento") {
+      aba.getRange(linha, 3, 1, 4).setValues([[
+        normalizada.pagamento,
+        categoriaLegada,
+        subcategoriaLegada,
+        normalizada.valor
+      ]]);
+    } else {
+      aba.getRange(linha, 4, 1, 3).setValues([[
+        categoriaLegada,
+        subcategoriaLegada,
+        normalizada.valor
+      ]]);
+    }
+
+    etapa = "gravar valor ajustado";
+    aba.getRange(linha, 7).setFormula(formulaValorAjustado);
+
+    etapa = "gravar observação";
+    aba.getRange(linha, 8).setValue(normalizada.observacao);
+
+    etapa = "gravar identificadores legados";
+    if (nomeColunaI === "id" || nomeColunaI === "id_movimentacao") {
+      aba.getRange(linha, 9).setValue(idMovimentacao);
+    }
+    if (cabecalhos[9] === "id_meta") {
+      aba.getRange(linha, 10).setValue(normalizada.idMeta);
+    }
+
+    etapa = "gravar classificação X:AJ";
+    aba.getRange(
+      linha,
+      COLUNAS_CLASSIFICACAO.fluxo,
+      1,
+      CABECALHOS_CLASSIFICACAO.length
+    ).setValues([[
+      classificacao.fluxo,
+      classificacao.natureza,
+      classificacao.categoria,
+      classificacao.subcategoria,
+      classificacao.essencialidade,
+      classificacao.comportamento,
+      idMovimentacao,
+      normalizada.idMeta,
+      classificacao.status,
+      normalizada.pagamento,
+      normalizada.parcelado,
+      normalizada.quantidadeParcelas,
+      normalizada.numeroParcela
+    ]]);
+
+    etapa = "confirmar persistência";
+    SpreadsheetApp.flush();
+    validarMovimentacaoGravada(
+      aba,
+      linha,
+      normalizada,
+      classificacao,
+      categoriaLegada,
+      subcategoriaLegada,
+      nomeColunaC,
+      nomeColunaI,
+      cabecalhos[9],
+      formulaValorAjustado
+    );
+  } catch (erro) {
+    const mensagem = erro && erro.message ? erro.message : String(erro);
+    Logger.log(
+      "Falha na gravação da aba " + aba.getName() +
+        ", linha " + linha +
+        ", etapa " + etapa + ": " + mensagem
+    );
+    throw new Error(
+      "Falha ao gravar movimentação na aba " + aba.getName() +
+        ", linha " + linha +
+        ", etapa " + etapa + ": " + mensagem
+    );
   }
-  if (cabecalhos[9] === "id_meta") {
-    aba.getRange(linha, 10).setValue(normalizada.idMeta);
+}
+
+function validarMovimentacaoGravada(
+  aba,
+  linha,
+  normalizada,
+  classificacao,
+  categoriaLegada,
+  subcategoriaLegada,
+  nomeColunaC,
+  nomeColunaI,
+  nomeColunaJ,
+  formulaValorAjustado
+) {
+  const esperados = [
+    { coluna: 1, letra: "A", valor: normalizada.data },
+    { coluna: 2, letra: "B", valor: classificacao.fluxo },
+    { coluna: 4, letra: "D", valor: categoriaLegada },
+    { coluna: 5, letra: "E", valor: subcategoriaLegada },
+    { coluna: 6, letra: "F", valor: normalizada.valor },
+    { coluna: 8, letra: "H", valor: normalizada.observacao }
+  ];
+
+  if (nomeColunaC === "pagamento") {
+    esperados.push({
+      coluna: 3,
+      letra: "C",
+      valor: normalizada.pagamento
+    });
+  }
+  if (nomeColunaI === "id" || nomeColunaI === "id_movimentacao") {
+    esperados.push({ coluna: 9, letra: "I", valor: normalizada.idMovimentacao });
+  }
+  if (nomeColunaJ === "id_meta") {
+    esperados.push({ coluna: 10, letra: "J", valor: normalizada.idMeta });
   }
 
-  aba.getRange(
+  const celulasIncompletas = [];
+  esperados.forEach(function (esperado) {
+    const atual = aba.getRange(linha, esperado.coluna).getValue();
+    const valoresIguais = esperado.valor instanceof Date
+      ? atual instanceof Date &&
+        atual.getTime() === esperado.valor.getTime()
+      : atual === esperado.valor;
+    if (!valoresIguais) {
+      celulasIncompletas.push(esperado.letra + linha);
+    }
+  });
+
+  const formulaAtual = aba.getRange(linha, 7).getFormulas()[0][0];
+  if (formulaAtual !== formulaValorAjustado) {
+    celulasIncompletas.push("G" + linha);
+  }
+
+  const valoresClassificacao = aba.getRange(
     linha,
     COLUNAS_CLASSIFICACAO.fluxo,
     1,
     CABECALHOS_CLASSIFICACAO.length
-  ).setValues([[
+  ).getValues()[0];
+  const valoresEsperados = [
     classificacao.fluxo,
     classificacao.natureza,
     classificacao.categoria,
     classificacao.subcategoria,
     classificacao.essencialidade,
     classificacao.comportamento,
-    idMovimentacao,
+    normalizada.idMovimentacao,
     normalizada.idMeta,
     classificacao.status,
     normalizada.pagamento,
     normalizada.parcelado,
     normalizada.quantidadeParcelas,
     normalizada.numeroParcela
-  ]]);
+  ];
+  const colunasClassificacao = [
+    "X", "Y", "Z", "AA", "AB", "AC", "AD",
+    "AE", "AF", "AG", "AH", "AI", "AJ"
+  ];
+
+  valoresEsperados.forEach(function (esperado, indice) {
+    if (valoresClassificacao[indice] !== esperado) {
+      celulasIncompletas.push(colunasClassificacao[indice] + linha);
+    }
+  });
+
+  if (celulasIncompletas.length) {
+    throw new Error(
+      "A gravação não foi confirmada nas células: " +
+        celulasIncompletas.join(", ") + "."
+    );
+  }
 }
 
 function localizarMovimentacaoPorId(aba, idMovimentacao) {
@@ -1462,6 +1605,16 @@ function classificarLinhaHistorica(linha, config, cabecalhos) {
   return legado;
 }
 
+function linhaHistoricaCompleta(linha) {
+  const data = new Date(linha[0]);
+  const valor = Number(linha[5]);
+  return Boolean(linha[0]) &&
+    !isNaN(data.getTime()) &&
+    Boolean(String(linha[1] || "").trim()) &&
+    isFinite(valor) &&
+    valor > 0;
+}
+
 function obterDashboard() {
   const planilha = SpreadsheetApp.openById(ID_PLANILHA);
   const aba = obterNomeAbaMes(planilha, new Date());
@@ -1541,10 +1694,9 @@ function obterHistorico() {
     const dados = lerLinhasMes(aba);
 
     dados.linhas.forEach(function (linha) {
-      if (!linha[0]) return;
+      if (!linhaHistoricaCompleta(linha)) return;
 
       const data = new Date(linha[0]);
-      if (isNaN(data.getTime())) return;
       const classificacao = classificarLinhaHistorica(
         linha,
         config,

@@ -69,7 +69,7 @@ test("checks history before retrying and completes when the ambiguous save exist
     };
     context.obterHistorico = async () => {
         historyChecks += 1;
-        return [{ idMovimentacao: "stable-base-id" }];
+        return [{ idMovimentacao: "stable-base-id", valor: 100 }];
     };
 
     await context.finalizarRegistro();
@@ -82,6 +82,31 @@ test("checks history before retrying and completes when the ambiguous save exist
     assert.equal(historyChecks, 1);
     assert.equal(saves, 1);
     assert.match(app.innerHTML, /Movimentação salva com sucesso/);
+});
+
+test("retries a movement id found in history when its stored amount is missing", async () => {
+    const { context, button, app } = criarContexto();
+    let saves = 0;
+    context.salvarNaPlanilha = async () => {
+        saves += 1;
+        if (saves === 1) {
+            const error = new Error("partial write");
+            error.name = "ApiOutcomeUnknownError";
+            throw error;
+        }
+        return { success: true };
+    };
+    context.obterHistorico = async () => [{
+        idMovimentacao: "stable-base-id",
+        valor: 0
+    }];
+
+    await context.finalizarRegistro();
+    await context.finalizarRegistro();
+
+    assert.equal(saves, 2);
+    assert.match(app.innerHTML, /Movimentação salva com sucesso/);
+    assert.notEqual(button.textContent, "Verificar e tentar novamente");
 });
 
 test("retries only missing installments after confirming which ids reached history", async () => {
@@ -102,7 +127,8 @@ test("retries only missing installments after confirming which ids reached histo
         return { success: true };
     };
     context.obterHistorico = async () => [{
-        idMovimentacao: "stable-base-id-P01"
+        idMovimentacao: "stable-base-id-P01",
+        valor: 50
     }];
 
     await context.finalizarRegistro();
