@@ -50,6 +50,16 @@ const CABECALHOS_CLASSIFICACAO = [
   "NUMERO_PARCELA_V2"
 ];
 
+const CABECALHOS_MOVIMENTACAO = {
+  1: "DATA",
+  2: "TIPO",
+  4: "CATEGORIA",
+  5: "SUBCATEGORIA",
+  6: "VALOR",
+  7: "VALOR AJUSTADO",
+  8: "OBSERVACAO"
+};
+
 const CABECALHOS_CONFIGURACAO = [
   "FLUXO",
   "NATUREZA",
@@ -220,7 +230,9 @@ function garantirEstruturaAbaMensal(aba) {
       1,
       CABECALHOS_CLASSIFICACAO.length
     ).setValues([CABECALHOS_CLASSIFICACAO]);
+    validarCabecalhosMovimentacao(aba);
     garantirResumoClassificacao(aba);
+    garantirFormulasValorAjustado(aba);
     return;
   }
 
@@ -260,7 +272,9 @@ function garantirEstruturaAbaMensal(aba) {
         1,
         totalColunas - preenchidos
       ).setValues([CABECALHOS_CLASSIFICACAO.slice(preenchidos)]);
+      validarCabecalhosMovimentacao(aba);
       garantirResumoClassificacao(aba);
+      garantirFormulasValorAjustado(aba);
       return;
     }
 
@@ -279,7 +293,65 @@ function garantirEstruturaAbaMensal(aba) {
     }
   }
 
+  validarCabecalhosMovimentacao(aba);
   garantirResumoClassificacao(aba);
+  garantirFormulasValorAjustado(aba);
+}
+
+function validarCabecalhosMovimentacao(aba) {
+  const cabecalhos = aba.getRange(1, 1, 1, 8)
+    .getDisplayValues()[0]
+    .map(normalizarChave);
+
+  Object.keys(CABECALHOS_MOVIMENTACAO).forEach(function (coluna) {
+    const esperado = normalizarChave(CABECALHOS_MOVIMENTACAO[coluna]);
+    if (cabecalhos[Number(coluna) - 1] !== esperado) {
+      throw new Error(
+        "Cabeçalho incompatível em " + aba.getName() + "!" +
+        String.fromCharCode(64 + Number(coluna)) + "1. Esperado: " +
+        CABECALHOS_MOVIMENTACAO[coluna] + "."
+      );
+    }
+  });
+
+  const pagamento = cabecalhos[2];
+  if (pagamento &&
+      pagamento !== "pagamento" &&
+      pagamento !== "descricao") {
+    throw new Error(
+      "Cabeçalho incompatível em " + aba.getName() +
+      "!C1. Esperado: PAGAMENTO, DESCRIÇÃO ou célula vazia."
+    );
+  }
+}
+
+function garantirFormulasValorAjustado(aba) {
+  const ultimaLinha = obterUltimaLinhaMovimentacoes(aba);
+  if (ultimaLinha < 2) return;
+
+  const quantidade = ultimaLinha - 1;
+  const dados = aba.getRange(2, 1, quantidade, 7).getValues();
+  const formulas = aba.getRange(2, 7, quantidade, 1).getFormulas();
+
+  for (let indice = 0; indice < quantidade; indice++) {
+    const linha = indice + 2;
+    const formula = formulas[indice][0];
+    const data = dados[indice][0];
+    const valor = dados[indice][5];
+    const valorAjustado = dados[indice][6];
+    if (
+      formula ||
+      data === "" || data === null ||
+      valor === "" || valor === null ||
+      (valorAjustado !== "" && valorAjustado !== null)
+    ) {
+      continue;
+    }
+
+    aba.getRange(linha, 7).setFormula(
+      '=IF(B' + linha + '="Saída",-ABS(F' + linha + '),ABS(F' + linha + '))'
+    );
+  }
 }
 
 function garantirResumoClassificacao(aba) {
@@ -970,6 +1042,9 @@ function gravarMovimentacaoNaLinha(
   aba.getRange(linha, 4).setValue(categoriaLegada);
   aba.getRange(linha, 5).setValue(subcategoriaLegada);
   aba.getRange(linha, 6).setValue(normalizada.valor);
+  aba.getRange(linha, 7).setFormula(
+    '=IF(B' + linha + '="Saída",-ABS(F' + linha + '),ABS(F' + linha + '))'
+  );
   aba.getRange(linha, 8).setValue(normalizada.observacao);
 
   const nomeColunaI = cabecalhos[8];

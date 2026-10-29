@@ -27,6 +27,7 @@ class FakeSheet {
     constructor(name, rows = 50, columns = 40) {
         this.name = name;
         this.values = Array.from({ length: rows }, () => Array(columns).fill(""));
+        this.formulas = Array.from({ length: rows }, () => Array(columns).fill(""));
     }
 
     getName() {
@@ -64,6 +65,13 @@ class FakeSheet {
                     )
                 );
             },
+            getFormulas() {
+                return Array.from({ length: rowCount }, (_, rowOffset) =>
+                    Array.from({ length: columnCount }, (_, columnOffset) =>
+                        sheet.formulas[row + rowOffset - 1][column + columnOffset - 1]
+                    )
+                );
+            },
             getDisplayValue() {
                 const value = sheet.values[row - 1][column - 1];
                 return value == null ? "" : String(value);
@@ -73,6 +81,9 @@ class FakeSheet {
             },
             setValue(value) {
                 sheet.values[row - 1][column - 1] = value;
+            },
+            setFormula(formula) {
+                sheet.formulas[row - 1][column - 1] = formula;
             },
             setValues(values) {
                 values.forEach((valuesRow, rowOffset) =>
@@ -227,6 +238,10 @@ test("creates a meta idempotently using the persisted operation id", () => {
 test("extends the old monthly schema only when new columns are empty", () => {
     const context = criarContexto();
     const sheet = new FakeSheet("OUTUBRO/2026");
+    sheet.getRange(1, 1, 1, 8).setValues([[
+        "DATA", "TIPO", "PAGAMENTO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "VALOR AJUSTADO", "OBSERVAÇÃO"
+    ]]);
     const prefix = context.__monthlyHeaders.slice(0, 11);
     sheet.getRange(1, 24, 1, prefix.length).setValues([prefix]);
     sheet.getRange(2, 1).setValue(new Date(2026, 9, 1));
@@ -244,6 +259,10 @@ test("extends the old monthly schema only when new columns are empty", () => {
 test("refuses schema migration if any unheaded extension column contains data", () => {
     const context = criarContexto();
     const sheet = new FakeSheet("OUTUBRO/2026");
+    sheet.getRange(1, 1, 1, 8).setValues([[
+        "DATA", "TIPO", "PAGAMENTO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "VALOR AJUSTADO", "OBSERVAÇÃO"
+    ]]);
     sheet.getRange(1, 24, 1, 11)
         .setValues([context.__monthlyHeaders.slice(0, 11)]);
     sheet.getRange(2, 35).setValue("preserve-me");
@@ -259,6 +278,12 @@ test("retries a movement with the same id by repairing the existing row", () => 
     const context = criarContexto();
     const sheet = new FakeSheet("OUTUBRO/2026");
     const monthlyHeaders = Array(36).fill("");
+    [
+        "DATA", "TIPO", "PAGAMENTO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "VALOR AJUSTADO", "OBSERVAÇÃO"
+    ].forEach((header, index) => {
+        monthlyHeaders[index] = header;
+    });
     context.__monthlyHeaders.forEach((header, index) => {
         monthlyHeaders[23 + index] = header;
     });
@@ -308,7 +333,67 @@ test("retries a movement with the same id by repairing the existing row", () => 
     assert.equal(retry.duplicadoIgnorado, true);
     assert.equal(sheet.getLastRow(), 2);
     assert.equal(sheet.getRange(2, 6).getValue(), 125);
+    assert.equal(
+        sheet.formulas[1][6],
+        '=IF(B2="Saída",-ABS(F2),ABS(F2))'
+    );
     assert.equal(sheet.getRange(2, 30).getValue(), "fixed-id");
+});
+
+test("repairs missing adjusted-value formulas for existing movement rows", () => {
+    const context = criarContexto();
+    const sheet = new FakeSheet("OUTUBRO2026");
+    const headers = Array(36).fill("");
+    [
+        "DATA", "TIPO", "PAGAMENTO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "VALOR AJUSTADO", "OBSERVAÇÃO"
+    ].forEach((header, index) => {
+        headers[index] = header;
+    });
+    context.__monthlyHeaders.forEach((header, index) => {
+        headers[23 + index] = header;
+    });
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(2, 1, 1, 8).setValues([[
+        new Date(2026, 9, 4), "Saída", "À vista", "Alimentação",
+        "Mercado", 125, "", "Teste de reparo"
+    ]]);
+    context.obterUltimaLinhaMovimentacoes = (aba) => aba.getLastRow();
+    context.garantirResumoClassificacao = () => {};
+
+    context.garantirEstruturaAbaMensal(sheet);
+
+    assert.equal(
+        sheet.formulas[1][6],
+        '=IF(B2="Saída",-ABS(F2),ABS(F2))'
+    );
+});
+
+test("refuses to write when the workbook's adjusted-value column is misplaced", () => {
+    const context = criarContexto();
+    const sheet = new FakeSheet("OUTUBRO2026");
+    sheet.getRange(1, 1, 1, 8).setValues([[
+        "DATA", "TIPO", "PAGAMENTO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "OUTRO CAMPO", "OBSERVAÇÃO"
+    ]]);
+
+    assert.throws(
+        () => context.validarCabecalhosMovimentacao(sheet),
+        /Cabeçalho incompatível em OUTUBRO2026!G1/
+    );
+});
+
+test("accepts legacy monthly tabs whose column C is reserved for description", () => {
+    const context = criarContexto();
+    const sheet = new FakeSheet("JANEIRO2026");
+    sheet.getRange(1, 1, 1, 8).setValues([[
+        "DATA", "TIPO", "DESCRIÇÃO", "CATEGORIA", "SUBCATEGORIA",
+        "VALOR", "VALOR AJUSTADO", "OBSERVAÇÃO"
+    ]]);
+
+    assert.doesNotThrow(
+        () => context.validarCabecalhosMovimentacao(sheet)
+    );
 });
 
 test("retries category and subcategory creation idempotently", () => {
