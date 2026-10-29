@@ -22,12 +22,17 @@ let registroAtual = {
    data: new Date(),
 
    tipo: "",
+   fluxo: "",
+   natureza: "",
 
    pagamento: "À vista",
    categoria: "",
    subcategoria: "",
+   essencialidade: "",
+   comportamento: "",
    valor: 0,
    observacao: "",
+   idMovimentacao: "",
    idMeta: "",
    parcelado: false,
    quantidadeParcelas: 1
@@ -38,7 +43,19 @@ let registroAtual = {
    SUBCATEGORIAS
 ============================================ */
 
-let subcategorias = [];
+let classificacaoConfig = null;
+let erroConfiguracaoClassificacao = "";
+let carregamentoConfiguracaoClassificacao = null;
+let metasAportePromise = null;
+let erroMetasAporte = "";
+let registroSalvando = false;
+let resultadoSalvamentoDesconhecido = false;
+
+function invalidarConfiguracaoTransacao() {
+    classificacaoConfig = null;
+    erroConfiguracaoClassificacao = "";
+    carregamentoConfiguracaoClassificacao = null;
+}
 
 /* ============================================
    TELA PRINCIPAL
@@ -68,172 +85,148 @@ function renderTransaction() {
    INICIALIZAÇÃO
 ============================================ */
 
-async function inicializarTransaction() {
-
-    metas = await buscarMetas();
-
-    await carregarSubcategorias();
-
-   if (etapaAtual === ETAPAS.VALOR) {
-
-       const btnContinuar =
-           document.getElementById("btnContinuar");
-
-       if (btnContinuar) {
-
-           btnContinuar.addEventListener(
-               "click",
-               salvarValor
-           );
-
-       }
-
-       const campoValor =
-           document.getElementById("valor");
-
-       if (campoValor) {
-
-           campoValor.addEventListener(
-               "input",
-               aplicarMascaraMoeda
-           );
-
-       }
-
-       const checkboxParcelado =
-    document.getElementById("parcelado");
-
-if (checkboxParcelado) {
-
-    checkboxParcelado.addEventListener(
-        "change",
-        () => {
-
-            atualizarVisibilidadeParcelas();
-
-            registroAtual.pagamento =
-                checkboxParcelado.checked
-                    ? "Parcelado"
-                    : "À vista";
-
-        }
-    );
-
-}
-
-       const selectParcelas =
-           document.getElementById("quantidadeParcelas");
-
-       if (selectParcelas) {
-
-           selectParcelas.addEventListener(
-               "change",
-               () => {
-
-                   registroAtual.quantidadeParcelas =
-                       Number(selectParcelas.value);
-
-               }
-           );
-
-       }
-
-       const btnVoltarDashboard =
-           document.getElementById("btnVoltarDashboard");
-
-       if (btnVoltarDashboard) {
-
-           btnVoltarDashboard.addEventListener("click", () => {
-
-               navegar("dashboard");
-
-           });
-
-       }
-
-       atualizarVisibilidadeParcelas();
-
-   }
-
-   if (etapaAtual === ETAPAS.TIPO) {
-
-       const opcoes =
-           document.querySelectorAll(".option-card");
-
-       opcoes.forEach(opcao => {
-
-           opcao.addEventListener("click", salvarTipo);
-
-       });
-
-       const btnVoltar =
-           document.getElementById("btnVoltar");
-
-       btnVoltar.addEventListener(
-           "click",
-           voltarEtapa
-       );
-
-   }
-
-   if (etapaAtual === ETAPAS.CATEGORIA) {
-
-       const opcoes =
-           document.querySelectorAll(".option-card");
-
-       opcoes.forEach(opcao => {
-
-           opcao.addEventListener("click", salvarCategoria);
-
-       });
-
-       const btnVoltar =
-           document.getElementById("btnVoltar");
-
-       btnVoltar.addEventListener(
-           "click",
-           voltarEtapa
-       );
-
-   }
-
-   if (etapaAtual === ETAPAS.RESUMO) {
-
-    const btnSalvar =
-        document.getElementById("btnSalvar");
-
-    btnSalvar.addEventListener(
-        "click",
-        finalizarRegistro
-    );
-
-    const btnVoltar =
-        document.getElementById("btnVoltar");
-
-    btnVoltar.addEventListener(
-        "click",
-        voltarEtapa
-    );
-
-    const selectMeta =
-        document.getElementById("metaMovimentacao");
-
-    if (selectMeta) {
-
-        selectMeta.addEventListener(
-            "change",
-            (event) => {
-
-                registroAtual.idMeta =
-                    event.target.value;
-
-            }
-        );
-
+function inicializarTransaction() {
+    if (!classificacaoConfig && !erroConfiguracaoClassificacao) {
+        carregarConfiguracoesTransacao();
     }
 
+    if (
+        registroAtual.natureza === "Aporte para sonho" &&
+        !registroAtual.idMeta &&
+        !metasAportePromise
+    ) {
+        metasAportePromise = buscarMetas()
+            .then((resultado) => {
+                metas = resultado;
+                if (etapaAtual === ETAPAS.CATEGORIA) {
+                    app.innerHTML = renderTransaction();
+                    inicializarTransaction();
+                }
+            })
+            .catch((erro) => {
+                console.error("Erro ao carregar metas para o aporte:", erro);
+                erroMetasAporte = erro.message;
+                if (etapaAtual === ETAPAS.CATEGORIA) {
+                    app.innerHTML = renderTransaction();
+                    inicializarTransaction();
+                }
+            })
+            .finally(() => {
+                metasAportePromise = null;
+            });
+    }
+
+    if (etapaAtual === ETAPAS.VALOR) {
+        document.getElementById("btnContinuar")
+            ?.addEventListener("click", salvarValor);
+        document.getElementById("valor")
+            ?.addEventListener("input", aplicarMascaraMoeda);
+        document.getElementById("parcelado")
+            ?.addEventListener("change", atualizarVisibilidadeParcelas);
+        document.getElementById("quantidadeParcelas")
+            ?.addEventListener("change", (event) => {
+                registroAtual.quantidadeParcelas = Number(event.target.value);
+            });
+        document.getElementById("btnVoltarDashboard")
+            ?.addEventListener("click", () => navegar("dashboard"));
+        document.getElementById("btnCancelar")
+            ?.addEventListener("click", () => navegar("dashboard"));
+
+        document.querySelectorAll(".transaction-keypad__button")
+            .forEach((botao) => {
+                botao.addEventListener("click", () => atualizarValorPeloTeclado(botao));
+            });
+
+        atualizarVisibilidadeParcelas();
+    }
+
+    if (etapaAtual === ETAPAS.TIPO) {
+        document.querySelectorAll("[data-fluxo][data-natureza]")
+            .forEach((opcao) => opcao.addEventListener("click", salvarTipo));
+        document.getElementById("btnVoltar")
+            ?.addEventListener("click", voltarEtapa);
+    }
+
+    if (etapaAtual === ETAPAS.CATEGORIA) {
+        document.getElementById("btnVoltar")
+            ?.addEventListener("click", voltarEtapa);
+        document.getElementById("categoria")
+            ?.addEventListener("change", atualizarSubcategorias);
+        document.getElementById("subcategoria")
+            ?.addEventListener("change", (event) => {
+                registroAtual.subcategoria = event.target.value;
+            });
+        document.getElementById("essencialidade")
+            ?.addEventListener("change", (event) => {
+                registroAtual.essencialidade = event.target.value;
+            });
+        document.getElementById("comportamento")
+            ?.addEventListener("change", (event) => {
+                registroAtual.comportamento = event.target.value;
+            });
+        document.getElementById("metaMovimentacao")
+            ?.addEventListener("change", (event) => {
+                registroAtual.idMeta = event.target.value;
+            });
+        document.getElementById("btnRecarregarMetas")
+            ?.addEventListener("click", () => {
+                erroMetasAporte = "";
+                inicializarTransaction();
+            });
+        document.getElementById("btnRecarregarConfiguracoes")
+            ?.addEventListener("click", () => {
+                erroConfiguracaoClassificacao = "";
+                carregamentoConfiguracaoClassificacao = null;
+                classificacaoConfig = null;
+                inicializarTransaction();
+            });
+        document.getElementById("btnContinuarClassificacao")
+            ?.addEventListener("click", salvarCategoria);
+    }
+
+    if (etapaAtual === ETAPAS.RESUMO) {
+        document.getElementById("btnSalvar")
+            ?.addEventListener("click", finalizarRegistro);
+        document.getElementById("btnVoltar")
+            ?.addEventListener("click", voltarEtapa);
+        document.getElementById("pagamento")
+            ?.addEventListener("change", (event) => {
+                registroAtual.pagamento = event.target.value;
+            });
+        document.getElementById("observacao")
+            ?.addEventListener("input", (event) => {
+                registroAtual.observacao = event.target.value;
+            });
+    }
 }
 
+function carregarConfiguracoesTransacao() {
+    if (carregamentoConfiguracaoClassificacao) {
+        return carregamentoConfiguracaoClassificacao;
+    }
+
+    carregamentoConfiguracaoClassificacao = obterConfiguracoesClassificacao()
+        .then((configuracoes) => {
+            classificacaoConfig = configuracoes;
+            erroConfiguracaoClassificacao = "";
+            if (etapaAtual === ETAPAS.CATEGORIA) {
+                app.innerHTML = renderTransaction();
+                inicializarTransaction();
+            }
+            return configuracoes;
+        })
+        .catch((erro) => {
+            erroConfiguracaoClassificacao = erro.message;
+            carregamentoConfiguracaoClassificacao = null;
+            if (etapaAtual === ETAPAS.CATEGORIA) {
+                app.innerHTML = renderTransaction();
+                inicializarTransaction();
+            }
+            throw erro;
+        });
+
+    carregamentoConfiguracaoClassificacao.catch(() => {});
+    return carregamentoConfiguracaoClassificacao;
 }
 
 /* ============================================
@@ -300,6 +293,7 @@ function renderStepValor() {
                        class="value-input"
                        type="text"
                        placeholder="0,00"
+                       value="${registroAtual.valor ? escaparHtml(Number(registroAtual.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })) : ""}"
                        autofocus
                    >
                </div>
@@ -350,18 +344,32 @@ function renderStepTipo() {
 
            <div class="transaction-hero transaction-hero--compact">
                <p class="transaction-eyebrow">Etapa 2</p>
-               <h2 class="step-title">Escolha</h2>
+               <h2 class="step-title">Como o dinheiro se movimentou?</h2>
            </div>
 
            <div class="transaction-choice-grid">
-               <button class="option-card transaction-choice-card" type="button" data-tipo="Receita">
+               <button class="option-card transaction-choice-card" type="button"
+                   data-fluxo="Entrada" data-natureza="Receita">
                    <span class="transaction-choice-card__icon">↗</span>
-                   <span class="transaction-choice-card__label">Receita</span>
+                   <span class="transaction-choice-card__label">Entrada · Receita</span>
                </button>
 
-               <button class="option-card transaction-choice-card" type="button" data-tipo="Despesa">
+               <button class="option-card transaction-choice-card" type="button"
+                   data-fluxo="Saída" data-natureza="Despesa">
                    <span class="transaction-choice-card__icon">↘</span>
                    <span class="transaction-choice-card__label">Despesa</span>
+               </button>
+
+               <button class="option-card transaction-choice-card" type="button"
+                   data-fluxo="Saída" data-natureza="Investimento">
+                   <span class="transaction-choice-card__icon">↗</span>
+                   <span class="transaction-choice-card__label">Saída · Investimento</span>
+               </button>
+
+               <button class="option-card transaction-choice-card" type="button"
+                   data-fluxo="Saída" data-natureza="Aporte para sonho">
+                   <span class="transaction-choice-card__icon">◎</span>
+                   <span class="transaction-choice-card__label">Saída · Aporte para sonho</span>
                </button>
            </div>
 
@@ -376,109 +384,137 @@ function renderStepTipo() {
 ============================================ */
 
 function renderStepCategoria() {
+    if (!classificacaoConfig) {
+        return `
+            <section class="assistant-step transaction-step transaction-step--classification">
+                <header class="transaction-header transaction-header--compact">
+                    <button id="btnVoltar" class="back-button" type="button">←</button>
+                    <h2>Nova movimentação</h2>
+                </header>
+                <div class="transaction-hero transaction-hero--compact">
+                    <p class="transaction-eyebrow">Etapa 3</p>
+                    <h2 class="step-title">Preparando categorias</h2>
+                </div>
+                <div class="card transaction-classification-loading" role="status">
+                    ${erroConfiguracaoClassificacao
+                        ? `<p>${escaparHtml(erroConfiguracaoClassificacao)}</p>
+                           <button id="btnRecarregarConfiguracoes" class="secondary-button" type="button">Tentar novamente</button>`
+                        : "<p>Carregando as opções uma vez para agilizar as próximas escolhas…</p>"}
+                </div>
+            </section>
+        `;
+    }
 
-    const categorias =
-        registroAtual.tipo === "Receita"
-            ? [
-                {
-                    nome: "Salário",
-                    icone: "💰"
-                },
-                {
-                    nome: "Extra",
-                    icone: "✨"
-                },
-                {
-                    nome: "Reembolso",
-                    icone: "↩️"
-                }
-            ]
-            : [
-                {
-                    nome: "Essencial",
-                    icone: "🥬"
-                },
-                {
-                    nome: "Não Essencial",
-                    icone: "🛍️"
-                },
-                {
-                    nome: "Investimentos",
-                    icone: "📈"
-                },
-                {
-                    nome: "Sonhos",
-                    icone: "🎯"
-                }
-            ];
-
+    const opcoes = classificacaoConfig.classificacoes.filter((opcao) =>
+        opcao.fluxo === registroAtual.fluxo &&
+        opcao.natureza === registroAtual.natureza
+    );
+    const categorias = Array.from(new Set(opcoes.map((opcao) => opcao.categoria)));
+    const possuiEssencialidade = registroAtual.natureza === "Despesa";
+    const categoriasHtml = categorias.map((categoria) => `
+        <option value="${escaparHtml(categoria)}"
+            ${categoria === registroAtual.categoria ? "selected" : ""}>
+            ${escaparHtml(categoria)}
+        </option>
+    `).join("");
+    const subcategoriasDisponiveis = obterSubcategoriasCategoria(
+        registroAtual.categoria,
+        opcoes
+    );
+    const subcategoriasHtml = obterSubcategoriasCategoria(
+        registroAtual.categoria,
+        opcoes
+    ).map((subcategoria) => `
+        <option value="${escaparHtml(subcategoria)}"
+            ${subcategoria === registroAtual.subcategoria ? "selected" : ""}>
+            ${escaparHtml(subcategoria)}
+        </option>
+    `).join("");
     return `
 
-        <section class="assistant-step transaction-step transaction-step--categories">
-
+        <section class="assistant-step transaction-step transaction-step--classification">
             <header class="transaction-header transaction-header--compact">
-
-                <button
-                    id="btnVoltar"
-                    class="back-button"
-                    type="button">
-
-                    ←
-
-                </button>
-
+                <button id="btnVoltar" class="back-button" type="button">←</button>
                 <h2>Nova movimentação</h2>
-
             </header>
 
-
             <div class="transaction-hero transaction-hero--compact">
-
-                <p class="transaction-eyebrow">
-                    Etapa 3
+                <p class="transaction-eyebrow">Etapa 3</p>
+                <h2 class="step-title">Classifique em poucos toques</h2>
+                <p class="transaction-classification-context">
+                    ${escaparHtml(registroAtual.fluxo)} · ${escaparHtml(registroAtual.natureza)}
                 </p>
-
-                <h2 class="step-title">
-                    Categorias
-                </h2>
-
             </div>
 
+            <div class="card transaction-classification-form">
+                <div class="form-group">
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" required>
+                        <option value="">Selecione</option>
+                        ${categoriasHtml}
+                    </select>
+                </div>
 
-            <div class="transaction-category-list">
+                <div class="form-group">
+                    <label for="subcategoria">Subcategoria</label>
+                    <select id="subcategoria"
+                        ${subcategoriasDisponiveis.length ? "required" : "disabled"}>
+                        <option value="">
+                            ${subcategoriasDisponiveis.length ? "Selecione" : "Não se aplica"}
+                        </option>
+                        ${subcategoriasHtml}
+                    </select>
+                </div>
 
-                ${categorias.map(categoria => `
+                ${possuiEssencialidade ? `
+                    <div class="transaction-classification-dimensions">
+                        <div class="form-group">
+                            <label for="essencialidade">Essencialidade</label>
+                            <select id="essencialidade" required>
+                                <option value="">Selecione</option>
+                                ${["Essencial", "Não essencial"].map((valor) => `
+                                    <option value="${valor}"
+                                        ${registroAtual.essencialidade === valor ? "selected" : ""}>
+                                        ${valor}
+                                    </option>
+                                `).join("")}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="comportamento">Comportamento</label>
+                            <select id="comportamento" required>
+                                <option value="">Selecione</option>
+                                ${["Fixo", "Variável", "Periódico"].map((valor) => `
+                                    <option value="${valor}"
+                                        ${registroAtual.comportamento === valor ? "selected" : ""}>
+                                        ${valor}
+                                    </option>
+                                `).join("")}
+                            </select>
+                        </div>
+                    </div>
+                ` : ""}
 
-                    <button
-                        class="option-card transaction-category-item"
-                        type="button"
-                        data-categoria="${categoria.nome}"
-                    >
-
-                        <span class="transaction-category-item__icon">
-
-                            ${categoria.icone}
-
-                        </span>
-
-                        <span class="transaction-category-item__label">
-
-                            ${categoria.nome}
-
-                        </span>
-
-                        <span class="transaction-category-item__arrow">
-
-                            ›
-
-                        </span>
-
-                    </button>
-
-                `).join("")}
-
+                ${registroAtual.natureza === "Aporte para sonho" ? `
+                    <div class="form-group">
+                        <label for="metaMovimentacao">Meta do aporte</label>
+                        <select id="metaMovimentacao" required
+                            ${registroAtual.idMeta ? "disabled" : ""}>
+                            ${obterOpcoesMetas(registroAtual.idMeta)}
+                        </select>
+                        ${erroMetasAporte
+                            ? `<small class="transaction-field-error">${escaparHtml(erroMetasAporte)}
+                               <button id="btnRecarregarMetas" class="secondary-button" type="button">Tentar novamente</button></small>`
+                            : ""}
+                    </div>
+                ` : ""}
             </div>
 
+            <div class="transaction-actions">
+                <button id="btnContinuarClassificacao" class="primary-button" type="button">
+                    Continuar
+                </button>
+            </div>
         </section>
 
     `;
@@ -490,6 +526,8 @@ function renderStepCategoria() {
 ============================================ */
 
 function renderParcelamentoNoValor() {
+   const permiteParcelamento =
+       !registroAtual.natureza || registroAtual.natureza === "Despesa";
 
    return `
 
@@ -501,13 +539,14 @@ function renderParcelamentoNoValor() {
                        type="checkbox"
                        id="parcelado"
                        ${registroAtual.parcelado ? "checked" : ""}
+                       ${permiteParcelamento ? "" : "disabled"}
                    >
                    <span>Parcelado</span>
                </label>
                <span class="transaction-parcelamento-card__hint">À vista</span>
            </div>
 
-           <div id="containerParcelas" class="${registroAtual.parcelado ? "" : "hidden"}">
+           <div id="containerParcelas" class="${permiteParcelamento && registroAtual.parcelado ? "" : "hidden"}">
 
                <label for="quantidadeParcelas">
 
@@ -539,7 +578,10 @@ function renderParcelamentoNoValor() {
 
 function capturarParcelamentoNoValor() {
 
-   if (registroAtual.tipo !== "Despesa") {
+   if (
+       registroAtual.tipo !== "Despesa" ||
+       (registroAtual.natureza && registroAtual.natureza !== "Despesa")
+   ) {
 
        registroAtual.parcelado = false;
        registroAtual.quantidadeParcelas = 1;
@@ -595,13 +637,17 @@ function renderStepResumo() {
                    <span class="summary-icon">
                        ${registroAtual.tipo === "Receita"
                            ? "💰"
+                           : registroAtual.natureza === "Investimento"
+                           ? "📈"
+                           : registroAtual.natureza === "Aporte para sonho"
+                           ? "🎯"
                            : registroAtual.tipo === "Despesa"
                            ? "🛒"
                            : "⚖️"}
                    </span>
                    <div>
-                       <h3>${registroAtual.tipo || "Tipo"}</h3>
-                       <p>${registroAtual.categoria || "Categoria"}</p>
+                       <h3>${escaparHtml(registroAtual.fluxo)} · ${escaparHtml(registroAtual.natureza)}</h3>
+                       <p>${escaparHtml(registroAtual.categoria || "Categoria")}</p>
                    </div>
                </div>
 
@@ -612,46 +658,45 @@ function renderStepResumo() {
                <div class="transaction-summary-details">
                    <div class="transaction-summary-details__row">
                        <span>Subcategoria</span>
-                       <strong>${registroAtual.subcategoria || "—"}</strong>
+                       <strong>${escaparHtml(registroAtual.subcategoria || "—")}</strong>
                    </div>
+                   ${registroAtual.natureza === "Despesa" ? `
+                       <div class="transaction-summary-details__row">
+                           <span>Essencialidade</span>
+                           <strong>${escaparHtml(registroAtual.essencialidade || "—")}</strong>
+                       </div>
+                       <div class="transaction-summary-details__row">
+                           <span>Comportamento</span>
+                           <strong>${escaparHtml(registroAtual.comportamento || "—")}</strong>
+                       </div>
+                   ` : ""}
                    <div class="transaction-summary-details__row">
                        <span>Data</span>
                        <strong>${new Date(registroAtual.data).toLocaleDateString("pt-BR")}</strong>
                    </div>
                    <div class="transaction-summary-details__row">
                        <span>Parcelamento</span>
-                       <strong>${registroAtual.tipo === "Despesa" && registroAtual.parcelado ? `${registroAtual.quantidadeParcelas}x` : "À vista"}</strong>
-                   </div>
-                   <div class="transaction-summary-details__row">
-                       <span>Observação</span>
-                       <strong>${registroAtual.observacao || "Sem observação"}</strong>
+                       <strong>${registroAtual.natureza === "Despesa" && registroAtual.parcelado ? `${registroAtual.quantidadeParcelas}x` : "À vista"}</strong>
                    </div>
                </div>
            </div>
 
-           ${!registroAtual.idMeta ? `
-    <div class="form-group">
-        <label for="subcategoria">Subcategoria</label>
-        <select id="subcategoria">
-            <option value="">Selecione uma subcategoria</option>
-            ${subcategorias.map(subcategoria => `
-                <option value="${subcategoria}">${subcategoria}</option>
-            `).join("")}
-        </select>
-    </div>
-` : ""}
-
-               ${registroAtual.categoria === "Sonhos" ? `
-    <div class="form-group">
-        <label for="metaMovimentacao">Qual sonho?</label>
-        <select id="metaMovimentacao">
-            ${obterOpcoesMetas(registroAtual.idMeta)}
-        </select>
-    </div>
-` : ""}
-
-               <label>Observação (opcional)</label>
-               <textarea id="observacao" rows="3" placeholder="Adicionar observação...">${registroAtual.observacao || ""}</textarea>
+           <div class="card transaction-confirmation-fields">
+               <div class="form-group">
+                   <label for="pagamento">Pagamento</label>
+                   <select id="pagamento">
+                       ${["À vista", "Cartão de crédito", "Cartão de débito", "Pix", "Dinheiro", "Transferência", "Parcelado", "Outro"].map((valor) => `
+                           <option value="${valor}"
+                               ${registroAtual.pagamento === valor ? "selected" : ""}>
+                               ${valor}
+                           </option>
+                       `).join("")}
+                   </select>
+               </div>
+               <div class="form-group">
+                   <label for="observacao">Observação (opcional)</label>
+                   <textarea id="observacao" rows="3" placeholder="Adicionar observação...">${escaparHtml(registroAtual.observacao || "")}</textarea>
+               </div>
            </div>
 
            <button id="btnSalvar" class="primary-button" type="button">Salvar movimentação</button>
@@ -672,7 +717,7 @@ function salvarValor() {
 
     const valor = Number(
         campoValor.value
-            .replace(".", "")
+            .replace(/\./g, "")
             .replace(",", ".")
     );
 
@@ -686,7 +731,7 @@ function salvarValor() {
     // Se veio do botão "ATUALIZAR" de uma meta,
     // tipo, categoria e meta já estão definidos.
     if (registroAtual.idMeta) {
-        etapaAtual = ETAPAS.RESUMO;
+        etapaAtual = ETAPAS.CATEGORIA;
     } else {
         // Fluxo normal
         etapaAtual = ETAPAS.TIPO;
@@ -733,9 +778,22 @@ function aplicarMascaraMoeda(event){
 }
 
 function salvarTipo(event) {
-
-   registroAtual.tipo =
-       event.currentTarget.dataset.tipo;
+   registroAtual.fluxo = event.currentTarget.dataset.fluxo;
+   registroAtual.natureza = event.currentTarget.dataset.natureza;
+   registroAtual.tipo = registroAtual.natureza === "Receita"
+       ? "Receita"
+       : "Despesa";
+   registroAtual.categoria = "";
+   registroAtual.subcategoria = "";
+   registroAtual.essencialidade = "";
+   registroAtual.comportamento = "";
+   registroAtual.idMeta = "";
+   erroMetasAporte = "";
+   registroAtual.parcelado = registroAtual.natureza === "Despesa" &&
+       registroAtual.parcelado;
+   if (!registroAtual.parcelado) {
+       registroAtual.quantidadeParcelas = 1;
+   }
 
    capturarParcelamentoNoValor();
 
@@ -748,9 +806,52 @@ function salvarTipo(event) {
 }
 
 function salvarCategoria(event) {
+    const selectCategoria = document.getElementById("categoria");
+    const selectSubcategoria = document.getElementById("subcategoria");
+    const selectEssencialidade = document.getElementById("essencialidade");
+    const selectComportamento = document.getElementById("comportamento");
+    const selectMeta = document.getElementById("metaMovimentacao");
 
-    registroAtual.categoria =
-        event.currentTarget.dataset.categoria;
+    registroAtual.categoria = selectCategoria?.value || "";
+    registroAtual.subcategoria = selectSubcategoria?.value || "";
+    registroAtual.essencialidade = selectEssencialidade?.value || "";
+    registroAtual.comportamento = selectComportamento?.value || "";
+    if (selectMeta) {
+        registroAtual.idMeta = selectMeta.value || registroAtual.idMeta;
+    }
+
+    if (!registroAtual.categoria) {
+        alert("Selecione uma categoria.");
+        return;
+    }
+
+    if (!registroAtual.subcategoria) {
+        const opcoesCategoria = classificacaoConfig.classificacoes.filter((opcao) =>
+            opcao.fluxo === registroAtual.fluxo &&
+            opcao.natureza === registroAtual.natureza &&
+            opcao.categoria === registroAtual.categoria
+        );
+        if (obterSubcategoriasCategoria(registroAtual.categoria, opcoesCategoria).length) {
+            alert("Selecione uma subcategoria.");
+            return;
+        }
+    }
+
+    if (
+        registroAtual.natureza === "Despesa" &&
+        (!registroAtual.essencialidade || !registroAtual.comportamento)
+    ) {
+        alert("Selecione a essencialidade e o comportamento da despesa.");
+        return;
+    }
+
+    if (
+        registroAtual.natureza === "Aporte para sonho" &&
+        !registroAtual.idMeta
+    ) {
+        alert("Selecione a meta que receberá o aporte.");
+        return;
+    }
 
     etapaAtual = ETAPAS.RESUMO;
 
@@ -788,27 +889,12 @@ function voltarEtapa(){
 }
 
 async function finalizarRegistro() {
+    if (registroSalvando) return;
 
-    const campoSubcategoria =
-        document.getElementById("subcategoria");
-
-    if (campoSubcategoria) {
-        registroAtual.subcategoria =
-            campoSubcategoria.value.trim();
-    } else {
-        registroAtual.subcategoria = "";
+    const selectPagamento = document.getElementById("pagamento");
+    if (selectPagamento) {
+        registroAtual.pagamento = selectPagamento.value;
     }
-
-
-    const selectMeta =
-        document.getElementById("metaMovimentacao");
-
-    if (selectMeta) {
-        registroAtual.idMeta =
-            selectMeta.value;
-    }
-
-
     const campoObservacao =
         document.getElementById("observacao");
 
@@ -820,51 +906,84 @@ async function finalizarRegistro() {
     }
 
 
-    console.log("REGISTRO ANTES DO ENVIO:");
-    console.log(registroAtual);
+    if (!registroAtual.idMovimentacao) {
+        registroAtual.idMovimentacao = gerarIdUnico();
+    }
 
-
-    const registrosParaSalvar =
+    let registrosParaSalvar =
         montarRegistrosParaSalvar(registroAtual);
+    const botaoSalvar = document.getElementById("btnSalvar");
+    registroSalvando = true;
+    if (botaoSalvar) {
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = resultadoSalvamentoDesconhecido
+            ? "Verificando…"
+            : "Salvando…";
+    }
 
-
-    console.log("REGISTROS PARA SALVAR:");
-    console.log(registrosParaSalvar);
-
-
+    let verificandoResultado = false;
     try {
+        if (resultadoSalvamentoDesconhecido) {
+            verificandoResultado = true;
+            const historicoAtual = await obterHistorico();
+            verificandoResultado = false;
+            const idsExistentes = new Set(
+                historicoAtual.map((item) => item.idMovimentacao).filter(Boolean)
+            );
+            registrosParaSalvar = registrosParaSalvar.filter(
+                (item) => !idsExistentes.has(item.idMovimentacao)
+            );
 
-        for (const registroParaSalvar of registrosParaSalvar) {
-
-            console.log("ENVIANDO:");
-            console.log(registroParaSalvar);
-
-            await salvarNaPlanilha(registroParaSalvar);
-
+            if (!registrosParaSalvar.length) {
+                resultadoSalvamentoDesconhecido = false;
+                invalidarHistorico();
+                invalidarAnalise();
+                resetRegistro();
+                etapaAtual = ETAPAS.VALOR;
+                abrirTelaSucesso();
+                return;
+            }
+            resultadoSalvamentoDesconhecido = false;
+            if (botaoSalvar) botaoSalvar.textContent = "Salvando…";
         }
 
+        for (const registroParaSalvar of registrosParaSalvar) {
+            await salvarNaPlanilha(registroParaSalvar);
+        }
 
-        alert("Movimentação cadastrada!");
-
-
+        resultadoSalvamentoDesconhecido = false;
+        invalidarHistorico();
+        invalidarAnalise();
         resetRegistro();
 
         etapaAtual = ETAPAS.VALOR;
 
         abrirTelaSucesso();
-
-
     } catch (erro) {
-
         console.error(
             "Erro ao salvar a movimentação:",
             erro
         );
-
-        alert(
-            "Não foi possível cadastrar a movimentação."
-        );
-
+        const resultadoIncerto = erro.name === "ApiNetworkError" ||
+            erro.name === "ApiOutcomeUnknownError";
+        if (resultadoIncerto) resultadoSalvamentoDesconhecido = true;
+        const erroDeAmbiente = erro.name === "ApiConfigurationError" ||
+            erro.name === "ApiRouteNotFoundError";
+        alert(erroDeAmbiente
+            ? erro.message
+            : verificandoResultado
+                ? "Não foi possível consultar o histórico. Nenhuma nova gravação foi enviada; tente verificar novamente."
+                : resultadoIncerto
+                    ? "Não foi possível confirmar a gravação. Os dados foram mantidos; antes de reenviar, verifique o histórico. Uma nova tentativa enviará somente os registros ausentes."
+                    : `Não foi possível cadastrar a movimentação: ${erro.message}`);
+        if (botaoSalvar) {
+            botaoSalvar.disabled = false;
+            botaoSalvar.textContent = resultadoSalvamentoDesconhecido
+                ? "Verificar e tentar novamente"
+                : "Tentar novamente";
+        }
+    } finally {
+        registroSalvando = false;
     }
 
 }
@@ -877,16 +996,22 @@ function resetRegistro(){
         data: new Date(),
 
         tipo: "",
+        fluxo: "",
+        natureza: "",
 
         pagamento: "À vista",
 
         categoria: "",
 
         subcategoria: "",
+        essencialidade: "",
+        comportamento: "",
 
         valor: 0,
 
         observacao: "",
+
+        idMovimentacao: "",
 
         idMeta: "",
 
@@ -895,15 +1020,24 @@ function resetRegistro(){
         quantidadeParcelas: 1
 
     };
+    erroMetasAporte = "";
+    resultadoSalvamentoDesconhecido = false;
 
 }
 
 function montarRegistrosParaSalvar(registro) {
+   const idBase = registro.idMovimentacao || gerarIdUnico();
 
-   if (registro.tipo !== "Despesa" || !registro.parcelado || Number(registro.quantidadeParcelas || 1) <= 1) {
+   if (
+       registro.fluxo !== "Saída" ||
+       registro.natureza !== "Despesa" ||
+       !registro.parcelado ||
+       Number(registro.quantidadeParcelas || 1) <= 1
+   ) {
 
        return [{
            ...registro,
+           idMovimentacao: idBase,
            parcelado: false,
            quantidadeParcelas: 1,
            parcela: 1
@@ -925,10 +1059,19 @@ function montarRegistrosParaSalvar(registro) {
            : valorBase;
 
        const dataParcela = new Date(registro.data);
+       const diaOriginal = dataParcela.getDate();
+       dataParcela.setDate(1);
        dataParcela.setMonth(dataParcela.getMonth() + index);
+       const ultimoDia = new Date(
+           dataParcela.getFullYear(),
+           dataParcela.getMonth() + 1,
+           0
+       ).getDate();
+       dataParcela.setDate(Math.min(diaOriginal, ultimoDia));
 
        registros.push({
            ...registro,
+           idMovimentacao: `${idBase}-P${String(index + 1).padStart(2, "0")}`,
            valor: Number(valorParcela.toFixed(2)),
            parcelado: true,
            quantidadeParcelas,
@@ -987,7 +1130,7 @@ function renderProgress(){
 
    let html = '<div class="progress-container">';
 
-   for (let i = 1; i <= 5; i++) {
+   for (let i = 1; i <= 4; i++) {
 
        html += `
            <div class="progress-step ${i <= etapaAtual ? "active" : ""}"></div>
@@ -1001,21 +1144,17 @@ function renderProgress(){
 
 }
 
-async function carregarSubcategorias() {
-
-    if (subcategorias.length > 0) {
-
-        return;
-
-    }
-
-    subcategorias = await obterSubcategorias();
-
-}
-
 function obterOpcoesMetas(idMetaSelecionada = "") {
 
     const metasAtivas = obterMetasAtivas();
+
+    if (idMetaSelecionada) {
+        const metaSelecionada = metasAtivas.find((meta) =>
+            String(meta.idMeta) === String(idMetaSelecionada)
+        );
+        const nomeMeta = metaSelecionada ? metaSelecionada.nome : "Meta selecionada";
+        return `<option value="${escaparHtml(idMetaSelecionada)}" selected>${escaparHtml(nomeMeta)}</option>`;
+    }
 
     if (!metasAtivas.length) {
         return `<option value="">Nenhuma meta ativa cadastrada</option>`;
@@ -1026,11 +1165,70 @@ function obterOpcoesMetas(idMetaSelecionada = "") {
 
         ${metasAtivas.map(meta => `
             <option
-                value="${meta.idMeta}"
-                ${String(meta.idMeta) === String(idMetaSelecionada) ? "selected" : ""}
+                value="${escaparHtml(meta.idMeta)}"
             >
-                ${meta.nome}
+                ${escaparHtml(meta.nome)}
             </option>
         `).join("")}
     `;
+}
+
+function obterSubcategoriasCategoria(categoria, opcoes = classificacaoConfig?.classificacoes || []) {
+    return Array.from(new Set(
+        opcoes
+            .filter((opcao) => opcao.categoria === categoria && opcao.subcategoria)
+            .map((opcao) => opcao.subcategoria)
+    ));
+}
+
+function atualizarSubcategorias(event) {
+    const selectCategoria = event.currentTarget;
+    const selectSubcategoria = document.getElementById("subcategoria");
+    const categoria = selectCategoria.value;
+    const opcoes = classificacaoConfig.classificacoes.filter((opcao) =>
+        opcao.fluxo === registroAtual.fluxo &&
+        opcao.natureza === registroAtual.natureza
+    );
+    const subcategoriasDisponiveis = obterSubcategoriasCategoria(categoria, opcoes);
+
+    registroAtual.categoria = categoria;
+    if (!subcategoriasDisponiveis.includes(registroAtual.subcategoria)) {
+        registroAtual.subcategoria = "";
+    }
+
+    selectSubcategoria.required = subcategoriasDisponiveis.length > 0;
+    selectSubcategoria.disabled = subcategoriasDisponiveis.length === 0;
+    selectSubcategoria.innerHTML = `
+        <option value="">
+            ${subcategoriasDisponiveis.length ? "Selecione" : "Não se aplica"}
+        </option>
+        ${subcategoriasDisponiveis.map((subcategoria) => `
+            <option value="${escaparHtml(subcategoria)}">${escaparHtml(subcategoria)}</option>
+        `).join("")}
+    `;
+}
+
+function atualizarValorPeloTeclado(botao) {
+    const campoValor = document.getElementById("valor");
+    const tecla = botao.textContent.trim();
+    const digitos = campoValor.value.replace(/\D/g, "");
+
+    if (tecla === ".") {
+        campoValor.focus();
+        return;
+    }
+
+    const novosDigitos = tecla === "⌫"
+        ? digitos.slice(0, -1)
+        : `${digitos}${tecla}`;
+    const centavos = Number(novosDigitos || "0");
+
+    campoValor.value = centavos
+        ? (centavos / 100).toLocaleString("pt-BR", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })
+        : "";
+    campoValor.dispatchEvent(new Event("input", { bubbles: true }));
+    campoValor.focus();
 }

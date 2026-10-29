@@ -1,0 +1,2135 @@
+const ID_PLANILHA = "1-VBbppruN6e7IRsTPxfqzTcLI82uTNmaK0063RMV1Gk";
+
+const MESES = {
+
+  0: "JANEIRO/2026",
+  1: "FEVEREIRO/2026",
+  2: "MARÇO/2026",
+  3: "ABRIL/2026",
+  4: "MAIO/2026",
+  5: "JUNHO/2026",
+  6: "JULHO/2026",
+  7: "AGOSTO/2026",
+  8: "SETEMBRO/2026",
+  9: "OUTUBRO/2026",
+  10: "NOVEMBRO/2026",
+  11: "DEZEMBRO/2026"
+
+};
+
+const COLUNAS_CLASSIFICACAO = {
+  fluxo: 24,
+  natureza: 25,
+  categoria: 26,
+  subcategoria: 27,
+  essencialidade: 28,
+  comportamento: 29,
+  idMovimentacao: 30,
+  idMeta: 31,
+  status: 32,
+  pagamento: 33,
+  parcelado: 34,
+  quantidadeParcelas: 35,
+  numeroParcela: 36,
+  ultimaColuna: 36
+};
+
+const CABECALHOS_CLASSIFICACAO = [
+  "FLUXO",
+  "NATUREZA",
+  "CATEGORIA_NOVA",
+  "SUBCATEGORIA_NOVA",
+  "ESSENCIALIDADE",
+  "COMPORTAMENTO",
+  "ID_MOVIMENTACAO_V2",
+  "ID_META_V2",
+  "STATUS_CLASSIFICACAO",
+  "PAGAMENTO_V2",
+  "PARCELADO_V2",
+  "QUANTIDADE_PARCELAS_V2",
+  "NUMERO_PARCELA_V2"
+];
+
+const CABECALHOS_CONFIGURACAO = [
+  "FLUXO",
+  "NATUREZA",
+  "CATEGORIA",
+  "SUBCATEGORIA",
+  "ESSENCIALIDADE",
+  "COMPORTAMENTO"
+];
+
+const CABECALHOS_MIGRACAO = [
+  "CATEGORIA_LEGADA",
+  "FLUXO",
+  "NATUREZA",
+  "ESSENCIALIDADE",
+  "OBSERVACAO_MIGRACAO"
+];
+
+const CLASSIFICACOES_PADRAO = [
+  ["Entrada", "Receita", "Salário", "", "", ""],
+  ["Entrada", "Receita", "Extra", "", "", ""],
+  ["Entrada", "Receita", "Reembolso", "", "", ""],
+  ["Saída", "Despesa", "Moradia", "Financiamento", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Moradia", "Energia", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Moradia", "Água", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Moradia", "Internet", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Moradia", "Condomínio", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Moradia", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Mercado", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Restaurante", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Lanche", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Delivery", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Padaria", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Alimentação", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Combustível", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Uber", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Manutenção", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Estacionamento", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Seguro", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Transporte", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Saúde", "Farmácia", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Saúde", "Academia", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Saúde", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Educação", "Curso", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Educação", "Faculdade", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Educação", "Livro", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Educação", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Lazer", "Netflix", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Lazer", "Passeios", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Lazer", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Compras", "Roupa", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Compras", "Notebook", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Compras", "Presente", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Compras", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Serviços", "Assinaturas", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Serviços", "Telefonia", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Serviços", "Outros", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Despesa", "Pendente de classificação", "A classificar", "Essencial|Não essencial", "Fixo|Variável|Periódico"],
+  ["Saída", "Investimento", "Investimentos", "Renda fixa", "", ""],
+  ["Saída", "Investimento", "Investimentos", "Renda variável", "", ""],
+  ["Saída", "Investimento", "Investimentos", "Fundos", "", ""],
+  ["Saída", "Investimento", "Investimentos", "Outros", "", ""],
+  ["Saída", "Aporte para sonho", "Sonhos", "Aporte para meta", "", ""]
+];
+
+const CORRESPONDENCIAS_LEGADAS_PADRAO = [
+  ["Essencial", "Saída", "Despesa", "Essencial", "Categoria de consumo original desconhecida; reclassificar manualmente."],
+  ["Não essencial", "Saída", "Despesa", "Não essencial", "Categoria de consumo original desconhecida; reclassificar manualmente."],
+  ["Investimentos", "Saída", "Investimento", "", "Investimento preservado sem classificação de consumo."],
+  ["Sonhos", "Saída", "Aporte para sonho", "", "Confirmar ID_META antes de classificar o vínculo."],
+  ["Salário", "Entrada", "Receita", "", "Categoria de receita preservada."],
+  ["Extra", "Entrada", "Receita", "", "Categoria de receita preservada."],
+  ["Reembolso", "Entrada", "Receita", "", "Entrada preservada; revisar a convenção do projeto."]
+];
+
+const CABECALHOS_RESUMO = [
+  "RESUMO DA CLASSIFICAÇÃO",
+  "VALOR",
+  "Parcelado",
+  "Quantidade de parcelas",
+  "Número da parcela"
+];
+
+function inicializarTabela(aba, coluna, cabecalhos, linhas) {
+  const cabecalho = aba.getRange(1, coluna, 1, cabecalhos.length)
+    .getDisplayValues()[0];
+  const preenchidos = cabecalho.filter(function (valor) {
+    return String(valor || "").trim() !== "";
+  }).length;
+
+  if (preenchidos === 0) {
+    aba.getRange(1, coluna, 1, cabecalhos.length).setValues([cabecalhos]);
+    if (linhas.length) {
+      aba.getRange(2, coluna, linhas.length, cabecalhos.length).setValues(linhas);
+    }
+    return;
+  }
+
+  if (preenchidos !== cabecalhos.length) {
+    throw new Error(
+      "A tabela de classificação na coluna " + coluna +
+      " está parcialmente configurada. Revise os cabeçalhos sem apagar dados."
+    );
+  }
+
+  for (let i = 0; i < cabecalhos.length; i++) {
+    if (normalizarChave(cabecalho[i]) !== normalizarChave(cabecalhos[i])) {
+      throw new Error(
+        "Cabeçalho incompatível na coluna " + coluna + ", posição " +
+        (i + 1) + ". Esperado: " + cabecalhos[i] + "."
+      );
+    }
+  }
+
+  if (linhas.length && aba.getLastRow() >= 2) {
+    const dadosExistentes = aba.getRange(
+      2,
+      coluna,
+      aba.getLastRow() - 1,
+      cabecalhos.length
+    ).getDisplayValues();
+    const temDados = dadosExistentes.some(function (linha) {
+      return linha.some(function (valor) {
+        return String(valor || "").trim() !== "";
+      });
+    });
+    if (!temDados) {
+      aba.getRange(2, coluna, linhas.length, cabecalhos.length).setValues(linhas);
+    }
+  } else if (linhas.length) {
+    aba.getRange(2, coluna, linhas.length, cabecalhos.length).setValues(linhas);
+  }
+}
+
+function garantirConfiguracaoClassificacao(planilha) {
+  let aba = obterAbaConfiguracoes(planilha);
+  inicializarTabela(
+    aba,
+    13,
+    CABECALHOS_CONFIGURACAO,
+    CLASSIFICACOES_PADRAO
+  );
+  inicializarTabela(
+    aba,
+    20,
+    CABECALHOS_MIGRACAO,
+    CORRESPONDENCIAS_LEGADAS_PADRAO
+  );
+  return aba;
+}
+
+function garantirEstruturaAbaMensal(aba) {
+  const totalColunas = COLUNAS_CLASSIFICACAO.ultimaColuna -
+    COLUNAS_CLASSIFICACAO.fluxo + 1;
+  const atual = aba.getRange(
+    1,
+    COLUNAS_CLASSIFICACAO.fluxo,
+    1,
+    totalColunas
+  ).getDisplayValues()[0];
+  const preenchidos = atual.filter(function (valor) {
+    return String(valor || "").trim() !== "";
+  }).length;
+
+  if (preenchidos === 0) {
+    aba.getRange(
+      1,
+      COLUNAS_CLASSIFICACAO.fluxo,
+      1,
+      CABECALHOS_CLASSIFICACAO.length
+    ).setValues([CABECALHOS_CLASSIFICACAO]);
+    garantirResumoClassificacao(aba);
+    return;
+  }
+
+  if (preenchidos !== totalColunas) {
+    const prefixoValido = atual.slice(0, preenchidos).every(function (valor, indice) {
+      return normalizarChave(valor) ===
+        normalizarChave(CABECALHOS_CLASSIFICACAO[indice]);
+    });
+    const restanteVazio = atual.slice(preenchidos).every(function (valor) {
+      return String(valor || "").trim() === "";
+    });
+
+    if (prefixoValido && restanteVazio) {
+      const ultimaLinha = aba.getLastRow();
+      const novasColunasSemDados = ultimaLinha < 2 ||
+        aba.getRange(
+          2,
+          COLUNAS_CLASSIFICACAO.fluxo + preenchidos,
+          ultimaLinha - 1,
+          totalColunas - preenchidos
+        ).getDisplayValues().every(function (linha) {
+          return linha.every(function (valor) {
+            return String(valor || "").trim() === "";
+          });
+        });
+
+      if (!novasColunasSemDados) {
+        throw new Error(
+          "Não foi possível completar o esquema de " + aba.getName() +
+          ": as novas colunas contêm dados sem cabeçalho. Revise AH:AJ."
+        );
+      }
+
+      aba.getRange(
+        1,
+        COLUNAS_CLASSIFICACAO.fluxo + preenchidos,
+        1,
+        totalColunas - preenchidos
+      ).setValues([CABECALHOS_CLASSIFICACAO.slice(preenchidos)]);
+      garantirResumoClassificacao(aba);
+      return;
+    }
+
+    throw new Error(
+      "A aba " + aba.getName() +
+      " possui cabeçalhos parciais em X:AJ. Corrija a estrutura antes de salvar."
+    );
+  }
+
+  for (let i = 0; i < CABECALHOS_CLASSIFICACAO.length; i++) {
+    if (normalizarChave(atual[i]) !== normalizarChave(CABECALHOS_CLASSIFICACAO[i])) {
+      throw new Error(
+        "Cabeçalho incompatível em " + aba.getName() +
+        "!X" + (i + 1) + ". Esperado: " + CABECALHOS_CLASSIFICACAO[i] + "."
+      );
+    }
+  }
+
+  garantirResumoClassificacao(aba);
+}
+
+function garantirResumoClassificacao(aba) {
+  const resumo = aba.getRange(1, 38, 1, CABECALHOS_RESUMO.length)
+    .getDisplayValues()[0];
+  if (!resumo.some(function (valor) {
+    return String(valor || "").trim() !== "";
+  })) {
+    aba.getRange(1, 38, 1, CABECALHOS_RESUMO.length)
+      .setValues([CABECALHOS_RESUMO]);
+  }
+
+  const rotulos = [
+    ["Receitas"],
+    ["Despesas"],
+    ["Despesas essenciais"],
+    ["Despesas não essenciais"],
+    ["Investimentos"],
+    ["Aportes para sonhos"],
+    ["Saldo financeiro"]
+  ];
+  const formulas = [
+    ['=SUMIFS($F:$F,$X:$X,"Entrada",$Y:$Y,"Receita")+SUMIFS($F:$F,$B:$B,"Entrada",$X:$X,"")'],
+    ['=SUMIFS($F:$F,$X:$X,"Saída",$Y:$Y,"Despesa")+SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"",$D:$D,"<>Investimentos",$D:$D,"<>Sonhos")'],
+    ['=SUMIFS($F:$F,$X:$X,"Saída",$Y:$Y,"Despesa",$AB:$AB,"Essencial")+SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"",$D:$D,"Essencial")'],
+    ['=SUMIFS($F:$F,$X:$X,"Saída",$Y:$Y,"Despesa",$AB:$AB,"Não essencial")+SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"",$D:$D,"Não essencial")'],
+    ['=SUMIFS($F:$F,$X:$X,"Saída",$Y:$Y,"Investimento")+SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"",$D:$D,"Investimentos")'],
+    ['=SUMIFS($F:$F,$X:$X,"Saída",$Y:$Y,"Aporte para sonho")+SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"",$D:$D,"Sonhos")'],
+    ['=SUMIFS($F:$F,$X:$X,"Entrada")-SUMIFS($F:$F,$X:$X,"Saída")+SUMIFS($F:$F,$B:$B,"Entrada",$X:$X,"")-SUMIFS($F:$F,$B:$B,"Saída",$X:$X,"")']
+  ];
+  const resumoExistente = aba.getRange(2, 38, rotulos.length, 2).getDisplayValues();
+  const resumoVazio = resumoExistente.every(function (linha) {
+    return linha.every(function (valor) {
+      return String(valor || "").trim() === "";
+    });
+  });
+  if (resumoVazio) {
+    aba.getRange(2, 38, rotulos.length, 1).setValues(rotulos);
+    aba.getRange(2, 39, formulas.length, 1).setFormulas(formulas);
+  }
+}
+
+function prepararEstruturaClassificacao() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const configuracoes = garantirConfiguracaoClassificacao(planilha);
+  const abasPreparadas = [];
+
+  Object.keys(MESES).forEach(function (indice) {
+    const aba = obterAbaMensalConfigurada(planilha, MESES[indice]);
+    if (!aba) {
+      throw new Error(
+        "A aba do mês " + MESES[indice] +
+        " não foi encontrada para preparar a classificação."
+      );
+    }
+    garantirEstruturaAbaMensal(aba);
+    abasPreparadas.push(aba.getName());
+  });
+
+  return {
+    success: true,
+    configuracoes: configuracoes.getName(),
+    abas: abasPreparadas
+  };
+}
+
+function responderJson(dados) {
+  return ContentService
+    .createTextOutput(JSON.stringify(dados))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function validarSegredoServidor(e) {
+  const esperado = PropertiesService.getScriptProperties()
+    .getProperty("APPS_SCRIPT_SHARED_SECRET") || "";
+  const recebido = e && e.parameter
+    ? String(e.parameter._sharedSecret || "")
+    : "";
+  if (!esperado || !recebido || esperado.length < 32) return false;
+
+  let diferenca = esperado.length ^ recebido.length;
+  const tamanho = Math.max(esperado.length, recebido.length);
+  for (let i = 0; i < tamanho; i++) {
+    diferenca |= (esperado.charCodeAt(i) || 0) ^
+      (recebido.charCodeAt(i) || 0);
+  }
+  return diferenca === 0;
+}
+
+function identificadorOperacaoValido(idOperacao) {
+  return typeof idOperacao === "string" &&
+    /^[A-Za-z0-9._:-]{8,200}$/.test(idOperacao);
+}
+
+function normalizarChave(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function obterNomeAbaMes(planilha, data) {
+  const mes = data.getMonth();
+  const nomeConfigurado = MESES[mes];
+  const nomes = [
+    nomeConfigurado,
+    nomeConfigurado.replace("/", ""),
+    nomeConfigurado.replace("/", " ")
+  ];
+
+  for (let i = 0; i < nomes.length; i++) {
+    const aba = planilha.getSheetByName(nomes[i]);
+    if (aba) return aba;
+  }
+
+  throw new Error(
+    "A aba do mês " + nomeConfigurado +
+    " não foi encontrada. Verifique os nomes das abas da planilha."
+  );
+}
+
+function obterAbaMensalConfigurada(planilha, nomeConfigurado) {
+  const nomes = [
+    nomeConfigurado,
+    nomeConfigurado.replace("/", ""),
+    nomeConfigurado.replace("/", " ")
+  ];
+  for (let i = 0; i < nomes.length; i++) {
+    const aba = planilha.getSheetByName(nomes[i]);
+    if (aba) return aba;
+  }
+  return null;
+}
+
+function obterAbaConfiguracoes(planilha) {
+  const nomes = ["CATEGORIAS/CONFIGS", "CATEGORIASCONFIGS"];
+  for (let i = 0; i < nomes.length; i++) {
+    const aba = planilha.getSheetByName(nomes[i]);
+    if (aba) return aba;
+  }
+  throw new Error(
+    "A aba de configurações não foi encontrada. Esperado: CATEGORIAS/CONFIGS."
+  );
+}
+
+function separarOpcoes(valor) {
+  return String(valor || "")
+    .split("|")
+    .map(function (item) { return item.trim(); })
+    .filter(function (item) { return item !== ""; });
+}
+
+function obterConfiguracaoClassificacao(planilha) {
+  const aba = garantirConfiguracaoClassificacao(planilha);
+  const cabecalhos = aba.getRange(1, 13, 1, 6).getDisplayValues()[0];
+  const cabecalhosLegados = aba.getRange(1, 20, 1, 5).getDisplayValues()[0];
+  const esperados = [
+    "FLUXO", "NATUREZA", "CATEGORIA", "SUBCATEGORIA",
+    "ESSENCIALIDADE", "COMPORTAMENTO"
+  ];
+  const esperadosLegados = [
+    "CATEGORIA_LEGADA", "FLUXO", "NATUREZA",
+    "ESSENCIALIDADE", "OBSERVACAO_MIGRACAO"
+  ];
+
+  for (let i = 0; i < esperados.length; i++) {
+    if (normalizarChave(cabecalhos[i]) !== normalizarChave(esperados[i])) {
+      throw new Error(
+        "A tabela de classificação da aba de configurações está incompleta. " +
+        "Esperado na coluna M: " + esperados.join(", ") + "."
+      );
+    }
+  }
+
+  for (let j = 0; j < esperadosLegados.length; j++) {
+    if (
+      normalizarChave(cabecalhosLegados[j]) !==
+      normalizarChave(esperadosLegados[j])
+    ) {
+      throw new Error(
+        "A tabela de correspondência histórica da aba de configurações " +
+        "está incompleta."
+      );
+    }
+  }
+
+  const ultimaLinha = aba.getLastRow();
+  if (ultimaLinha < 2) {
+    throw new Error("A tabela de classificação não contém opções.");
+  }
+
+  const linhas = aba.getRange(2, 13, ultimaLinha - 1, 6).getDisplayValues();
+  const linhasLegadas = aba.getRange(2, 20, ultimaLinha - 1, 5).getDisplayValues();
+  const opcoes = linhas
+    .filter(function (linha) {
+      return linha[0] && linha[1] && linha[2];
+    })
+    .map(function (linha) {
+      return {
+        fluxo: linha[0].trim(),
+        natureza: linha[1].trim(),
+        categoria: linha[2].trim(),
+        subcategoria: linha[3].trim(),
+        essencialidade: separarOpcoes(linha[4]),
+        comportamento: separarOpcoes(linha[5])
+      };
+    });
+  const correspondenciasLegadas = linhasLegadas
+    .filter(function (linha) { return linha[0]; })
+    .map(function (linha) {
+      return {
+        categoria: linha[0].trim(),
+        fluxo: linha[1].trim(),
+        natureza: linha[2].trim(),
+        essencialidade: linha[3].trim(),
+        observacao: linha[4].trim()
+      };
+    });
+
+  if (!opcoes.length) {
+    throw new Error("A tabela de classificação não contém opções válidas.");
+  }
+
+  return {
+    opcoes: opcoes,
+    correspondenciasLegadas: correspondenciasLegadas
+  };
+}
+
+function obterUltimaLinhaMovimentacoes(aba) {
+  const ultimaLinha = aba.getLastRow();
+  if (ultimaLinha < 2) return 1;
+
+  const datas = aba.getRange(2, 1, ultimaLinha - 1, 1).getValues();
+  for (let i = datas.length - 1; i >= 0; i--) {
+    if (datas[i][0] !== "" && datas[i][0] !== null) return i + 2;
+  }
+  return 1;
+}
+
+function obterIdMetaDaLinha(linha, cabecalhos) {
+  const idNovo = linha[COLUNAS_CLASSIFICACAO.idMeta - 1];
+  if (idNovo) return String(idNovo);
+
+  const colunaMetaLegada = cabecalhos.indexOf(normalizarChave("ID_META"));
+  if (colunaMetaLegada >= 0 && linha[colunaMetaLegada]) {
+    return String(linha[colunaMetaLegada]);
+  }
+
+  const valorColunaJ = linha[9];
+  return /^M\d+$/i.test(String(valorColunaJ || ""))
+    ? String(valorColunaJ)
+    : "";
+}
+
+function obterClassificacaoLegada(tipo, categoriaLegada, subcategoriaLegada, idMeta, config) {
+  const chaveCategoria = normalizarChave(categoriaLegada);
+  const correspondencia = config.correspondenciasLegadas.filter(function (item) {
+    return normalizarChave(item.categoria) === chaveCategoria;
+  })[0];
+  const chaveTipo = normalizarChave(tipo);
+  let fluxo = correspondencia ? correspondencia.fluxo : "";
+
+  if (!fluxo) {
+    if (chaveTipo === "entrada" || chaveTipo === "receita") fluxo = "Entrada";
+    if (chaveTipo === "saida" || chaveTipo === "despesa") fluxo = "Saída";
+  }
+
+  const natureza = correspondencia
+    ? correspondencia.natureza
+    : (chaveTipo === "entrada" || chaveTipo === "receita"
+      ? "Receita"
+      : (chaveTipo === "saida" || chaveTipo === "despesa" ? "Despesa" : ""));
+  const ehDespesaLegada = correspondencia &&
+    normalizarChave(correspondencia.natureza) === "despesa";
+  const categoria = correspondencia
+    ? (ehDespesaLegada
+      ? "Pendente de classificação"
+      : (correspondencia.natureza === "Investimento"
+        ? "Investimentos"
+        : (correspondencia.natureza === "Aporte para sonho"
+          ? "Sonhos"
+          : correspondencia.categoria || categoriaLegada || "")))
+    : "Pendente de classificação";
+  const subcategoria = ehDespesaLegada
+    ? "A classificar"
+    : "";
+  let status = "Classificação legada mapeada";
+
+  if (!correspondencia) {
+    status = "Ambíguo - categoria legada sem correspondência";
+  } else if (ehDespesaLegada) {
+    status = "Pendente de classificação - categoria de consumo desconhecida";
+  } else if (
+    normalizarChave(correspondencia.natureza) === "aporte para sonho" &&
+    !idMeta
+  ) {
+    status = "Inconsistente - aporte sem ID_META";
+  }
+
+  return {
+    fluxo: fluxo,
+    natureza: natureza,
+    categoria: categoria,
+    subcategoria: subcategoria,
+    essencialidade: correspondencia ? correspondencia.essencialidade : "",
+    comportamento: "",
+    status: status,
+    categoriaLegada: categoriaLegada || "",
+    subcategoriaLegada: subcategoriaLegada || ""
+  };
+}
+
+function validarMetaDeAporte(planilha, idMeta) {
+  if (!idMeta) {
+    throw new Error("A natureza Aporte para sonho exige um ID de meta.");
+  }
+
+  const aba = planilha.getSheetByName("METAS");
+  if (!aba || aba.getLastRow() < 2) {
+    throw new Error("A meta informada não foi encontrada.");
+  }
+
+  const ids = aba.getRange(2, 1, aba.getLastRow() - 1, 1).getDisplayValues();
+  const existe = ids.some(function (linha) {
+    return String(linha[0]) === String(idMeta);
+  });
+  if (!existe) {
+    throw new Error("A meta informada não existe na aba METAS.");
+  }
+}
+
+function normalizarMovimentacao(registro, config, planilha) {
+  if (!registro || typeof registro !== "object") {
+    throw new Error("O registro da movimentação é inválido.");
+  }
+
+  const data = new Date(registro.data);
+  if (isNaN(data.getTime())) {
+    throw new Error("A data da movimentação é inválida ou está ausente.");
+  }
+
+  const valor = Number(String(registro.valor).replace(",", "."));
+  if (!isFinite(valor) || valor <= 0) {
+    throw new Error("O valor da movimentação deve ser maior que zero.");
+  }
+
+  const pagamento = String(registro.pagamento || "À vista").trim();
+  const observacao = String(registro.observacao || "");
+  const idMeta = String(registro.idMeta || "");
+  const parcelado = registro.parcelado === true ||
+    normalizarChave(registro.parcelado) === "true";
+  const quantidadeParcelas = registro.quantidadeParcelas === undefined ||
+    registro.quantidadeParcelas === null ||
+    registro.quantidadeParcelas === ""
+    ? 1
+    : Number(registro.quantidadeParcelas);
+  const numeroParcela = registro.parcela === undefined ||
+    registro.parcela === null ||
+    registro.parcela === ""
+    ? 1
+    : Number(registro.parcela);
+
+  if (
+    !Number.isInteger(quantidadeParcelas) ||
+    quantidadeParcelas < 1 ||
+    quantidadeParcelas > 12 ||
+    !Number.isInteger(numeroParcela) ||
+    numeroParcela < 1 ||
+    numeroParcela > quantidadeParcelas ||
+    (parcelado && quantidadeParcelas < 2) ||
+    (!parcelado && (quantidadeParcelas !== 1 || numeroParcela !== 1))
+  ) {
+    throw new Error("Os dados de parcelamento são inválidos.");
+  }
+
+  const usaNovoContrato = Boolean(registro.fluxo || registro.natureza);
+
+  if (!usaNovoContrato) {
+    const classificacao = obterClassificacaoLegada(
+      registro.tipo,
+      registro.categoria,
+      registro.subcategoria,
+      idMeta,
+      config
+    );
+
+    return {
+      data: data,
+      valor: valor,
+      pagamento: pagamento,
+      observacao: observacao,
+      idMeta: idMeta,
+      idMovimentacao: String(registro.idMovimentacao || ""),
+      parcelado: parcelado,
+      quantidadeParcelas: quantidadeParcelas,
+      numeroParcela: numeroParcela,
+      legado: true,
+      classificacao: classificacao
+    };
+  }
+
+  const fluxo = String(registro.fluxo || "").trim();
+  const natureza = String(registro.natureza || "").trim();
+  const categoria = String(registro.categoria || "").trim();
+  const subcategoria = String(registro.subcategoria || "").trim();
+  const essencialidade = String(registro.essencialidade || "").trim();
+  const comportamento = String(registro.comportamento || "").trim();
+
+  if (fluxo !== "Entrada" && fluxo !== "Saída") {
+    throw new Error("Fluxo inválido. Use Entrada ou Saída.");
+  }
+  if (
+    (fluxo === "Entrada" && natureza !== "Receita") ||
+    (fluxo === "Saída" &&
+      ["Despesa", "Investimento", "Aporte para sonho"].indexOf(natureza) < 0)
+  ) {
+    throw new Error("A natureza selecionada não é compatível com o fluxo.");
+  }
+  if (fluxo === "Entrada" && parcelado) {
+    throw new Error("Parcelamento só pode ser usado em movimentações de saída.");
+  }
+
+  const opcoesCategoria = config.opcoes.filter(function (opcao) {
+    return normalizarChave(opcao.fluxo) === normalizarChave(fluxo) &&
+      normalizarChave(opcao.natureza) === normalizarChave(natureza) &&
+      normalizarChave(opcao.categoria) === normalizarChave(categoria);
+  });
+  if (!opcoesCategoria.length) {
+    throw new Error("A categoria não é válida para a natureza selecionada.");
+  }
+  if (subcategoria && !opcoesCategoria.some(function (opcao) {
+    return normalizarChave(opcao.subcategoria) === normalizarChave(subcategoria);
+  })) {
+    throw new Error("A subcategoria não pertence à categoria selecionada.");
+  }
+
+  let status = "Classificada";
+  if (natureza === "Despesa") {
+    const essencialidades = [];
+    const comportamentos = [];
+    opcoesCategoria.forEach(function (opcao) {
+      Array.prototype.push.apply(essencialidades, opcao.essencialidade);
+      Array.prototype.push.apply(comportamentos, opcao.comportamento);
+    });
+
+    if (!essencialidade || essencialidades.indexOf(essencialidade) < 0) {
+      throw new Error(
+        "Essencialidade obrigatória para despesas. Use Essencial ou Não essencial."
+      );
+    }
+    if (!comportamento || comportamentos.indexOf(comportamento) < 0) {
+      throw new Error(
+        "Comportamento obrigatório para despesas. Use Fixo, Variável ou Periódico."
+      );
+    }
+  } else if (essencialidade || comportamento) {
+    throw new Error(
+      "Essencialidade e comportamento só se aplicam a despesas."
+    );
+  }
+
+  if (natureza === "Aporte para sonho") {
+    validarMetaDeAporte(planilha, idMeta);
+  }
+
+  return {
+    data: data,
+    valor: valor,
+    pagamento: pagamento,
+    observacao: observacao,
+    idMeta: idMeta,
+    idMovimentacao: String(registro.idMovimentacao || ""),
+    parcelado: parcelado,
+    quantidadeParcelas: quantidadeParcelas,
+    numeroParcela: numeroParcela,
+    legado: false,
+    classificacao: {
+      fluxo: fluxo,
+      natureza: natureza,
+      categoria: categoria,
+      subcategoria: subcategoria,
+      essencialidade: essencialidade,
+      comportamento: comportamento,
+      status: status,
+      categoriaLegada: "",
+      subcategoriaLegada: ""
+    }
+  };
+}
+
+function obterValoresClassificacao(linha) {
+  const fluxo = String(linha[COLUNAS_CLASSIFICACAO.fluxo - 1] || "").trim();
+  const natureza = String(linha[COLUNAS_CLASSIFICACAO.natureza - 1] || "").trim();
+  const categoria = String(linha[COLUNAS_CLASSIFICACAO.categoria - 1] || "").trim();
+  const subcategoria = String(linha[COLUNAS_CLASSIFICACAO.subcategoria - 1] || "").trim();
+  const essencialidade = String(
+    linha[COLUNAS_CLASSIFICACAO.essencialidade - 1] || ""
+  ).trim();
+  const comportamento = String(
+    linha[COLUNAS_CLASSIFICACAO.comportamento - 1] || ""
+  ).trim();
+
+  return {
+    fluxo: fluxo,
+    natureza: natureza,
+    categoria: categoria,
+    subcategoria: subcategoria,
+    essencialidade: essencialidade,
+    comportamento: comportamento
+  };
+}
+
+function obterUltimaLinhaPorData(aba) {
+  return obterUltimaLinhaMovimentacoes(aba);
+}
+
+function doPost(e){
+  if (!validarSegredoServidor(e)) {
+    return responderJson({
+      success: false,
+      message: "Não autorizado."
+    });
+  }
+
+  try{
+    if (!e || !e.parameter) {
+      throw new Error("Objeto e ou parâmetros não recebidos.");
+    }
+
+    const acao = e.parameter.acao || "movimentacao";
+
+    if (acao === "dashboard") return responderJson(obterDashboard());
+    if (acao === "historico") return responderJson(obterHistorico());
+    if (acao === "subcategorias") {
+      return responderJson(obterSubcategorias(e.parameter));
+    }
+    if (acao === "configuracoes") {
+      return responderJson(obterConfiguracoes());
+    }
+    if (acao === "metas") return responderJson(obterMetas());
+
+    if (!identificadorOperacaoValido(e.parameter.idOperacao)) {
+      throw new Error("A operação precisa de um identificador estável.");
+    }
+
+    if (acao === "criarMeta") {
+      const meta = JSON.parse(e.parameter.meta);
+      return responderJson(criarMeta(meta, e.parameter.idOperacao));
+    }
+
+    if (acao === "encerrarMeta") {
+      return responderJson(encerrarMeta(e.parameter.idMeta));
+    }
+
+    if (acao === "concluirDesejo") {
+      return responderJson(concluirDesejo(e.parameter.idMeta));
+    }
+
+    if (acao === "transformarDesejoEmMeta") {
+      return responderJson(transformarDesejoEmMeta(e.parameter.idMeta));
+    }
+    if (acao === "prepararEstrutura") {
+      return responderJson(prepararEstruturaClassificacao());
+    }
+    if (acao === "gerenciarClassificacao") {
+      return responderJson(gerenciarClassificacao(
+        JSON.parse(e.parameter.classificacao || "{}"),
+        e.parameter.idOperacao
+      ));
+    }
+
+    const dados = JSON.parse(e.parameter.registro);
+    if (String(dados.idMovimentacao || "") !== e.parameter.idOperacao) {
+      throw new Error("O ID da operação não corresponde ao ID da movimentação.");
+    }
+    return responderJson(salvarMovimentacao(dados));
+
+  } catch(erro) {
+    Logger.log("Erro no POST: " + erro.message);
+    const acao = e && e.parameter ? e.parameter.acao : "";
+    const consulta = [
+      "dashboard",
+      "historico",
+      "subcategorias",
+      "configuracoes",
+      "metas"
+    ].indexOf(acao) >= 0;
+    return responderJson({
+      success: false,
+      message: erro.message || String(erro),
+      outcomeUnknown: !consulta
+    });
+  }
+}
+
+function salvarMovimentacao(registro){
+  if (!registro || typeof registro !== "object") {
+    throw new Error("O registro da movimentação é inválido.");
+  }
+  if (!registro.idMovimentacao) {
+    registro.idMovimentacao = Utilities.getUuid();
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    return salvarMovimentacaoComLock(registro);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function salvarMovimentacaoComLock(registro) {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const config = obterConfiguracaoClassificacao(planilha);
+  const normalizada = normalizarMovimentacao(registro, config, planilha);
+  const aba = obterNomeAbaMes(planilha, normalizada.data);
+  garantirEstruturaAbaMensal(aba);
+  const cabecalhos = aba
+    .getRange(1, 1, 1, COLUNAS_CLASSIFICACAO.ultimaColuna)
+    .getDisplayValues()[0]
+    .map(normalizarChave);
+
+  for (let i = 0; i < CABECALHOS_CLASSIFICACAO.length; i++) {
+    if (
+      cabecalhos[COLUNAS_CLASSIFICACAO.fluxo - 1 + i] !==
+      normalizarChave(CABECALHOS_CLASSIFICACAO[i])
+    ) {
+      throw new Error(
+        "A aba " + aba.getName() +
+          " não contém o esquema de classificação atualizado nas colunas X:AJ."
+      );
+    }
+  }
+
+  const idMovimentacao = normalizada.idMovimentacao;
+  const classificacao = normalizada.classificacao;
+  const linhaExistente = localizarMovimentacaoPorId(aba, idMovimentacao);
+  if (linhaExistente) {
+    gravarMovimentacaoNaLinha(
+      aba, linhaExistente, registro, normalizada, classificacao, cabecalhos
+    );
+    return {
+      success: true,
+      idMovimentacao: idMovimentacao,
+      idMeta: normalizada.idMeta,
+      statusClassificacao: classificacao.status,
+      duplicadoIgnorado: true
+    };
+  }
+
+  const ultimaLinha = obterUltimaLinhaMovimentacoes(aba);
+  const novaLinha = ultimaLinha + 1;
+  gravarMovimentacaoNaLinha(
+    aba, novaLinha, registro, normalizada, classificacao, cabecalhos
+  );
+  return {
+    success: true,
+    idMovimentacao: idMovimentacao,
+    idMeta: normalizada.idMeta,
+    statusClassificacao: classificacao.status
+  };
+}
+
+function gravarMovimentacaoNaLinha(
+  aba, linha, registro, normalizada, classificacao, cabecalhos
+) {
+  const idMovimentacao = normalizada.idMovimentacao;
+  aba.getRange(
+    linha,
+    COLUNAS_CLASSIFICACAO.idMovimentacao
+  ).setValue(idMovimentacao);
+  const categoriaLegada = normalizada.legado
+    ? String(registro.categoria || "")
+    : classificacao.categoria;
+  const subcategoriaLegada = normalizada.legado
+    ? String(registro.subcategoria || "")
+    : classificacao.subcategoria;
+  const nomeColunaC = cabecalhos[2];
+
+  aba.getRange(linha, 1).setValue(normalizada.data);
+  aba.getRange(linha, 2).setValue(classificacao.fluxo);
+  if (nomeColunaC === "pagamento") {
+    aba.getRange(linha, 3).setValue(normalizada.pagamento);
+  }
+  aba.getRange(linha, 4).setValue(categoriaLegada);
+  aba.getRange(linha, 5).setValue(subcategoriaLegada);
+  aba.getRange(linha, 6).setValue(normalizada.valor);
+  aba.getRange(linha, 8).setValue(normalizada.observacao);
+
+  const nomeColunaI = cabecalhos[8];
+  if (nomeColunaI === "id" || nomeColunaI === "id_movimentacao") {
+    aba.getRange(linha, 9).setValue(idMovimentacao);
+  }
+  if (cabecalhos[9] === "id_meta") {
+    aba.getRange(linha, 10).setValue(normalizada.idMeta);
+  }
+
+  aba.getRange(
+    linha,
+    COLUNAS_CLASSIFICACAO.fluxo,
+    1,
+    CABECALHOS_CLASSIFICACAO.length
+  ).setValues([[
+    classificacao.fluxo,
+    classificacao.natureza,
+    classificacao.categoria,
+    classificacao.subcategoria,
+    classificacao.essencialidade,
+    classificacao.comportamento,
+    idMovimentacao,
+    normalizada.idMeta,
+    classificacao.status,
+    normalizada.pagamento,
+    normalizada.parcelado,
+    normalizada.quantidadeParcelas,
+    normalizada.numeroParcela
+  ]]);
+}
+
+function localizarMovimentacaoPorId(aba, idMovimentacao) {
+  const ultimaLinha = obterUltimaLinhaMovimentacoes(aba);
+  if (ultimaLinha < 2) return 0;
+  const ids = aba.getRange(
+    2,
+    COLUNAS_CLASSIFICACAO.idMovimentacao,
+    ultimaLinha - 1,
+    1
+  ).getDisplayValues();
+  const chave = String(idMovimentacao);
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === chave) return i + 2;
+  }
+  return 0;
+}
+
+function validarParFluxoNatureza(fluxo, natureza) {
+  if (
+    (fluxo === "Entrada" && natureza === "Receita") ||
+    (fluxo === "Saída" &&
+      ["Despesa", "Investimento", "Aporte para sonho"].indexOf(natureza) >= 0)
+  ) {
+    return;
+  }
+  throw new Error("O tipo de movimentação selecionado é inválido.");
+}
+
+function garantirColunaOperacaoClassificacao(aba) {
+  const cabecalho = String(aba.getRange(1, 19).getDisplayValue() || "").trim();
+  if (!cabecalho) {
+    const ultimaLinha = aba.getLastRow();
+    if (ultimaLinha >= 2) {
+      const preenchida = aba.getRange(2, 19, ultimaLinha - 1, 1)
+        .getDisplayValues()
+        .some(function (linha) { return String(linha[0] || "").trim() !== ""; });
+      if (preenchida) {
+        throw new Error(
+          "A coluna S da configuração contém dados e não pode ser usada para idempotência."
+        );
+      }
+    }
+    aba.getRange(1, 19).setValue("ID_OPERACAO_API");
+    return;
+  }
+  if (normalizarChave(cabecalho) !== "id_operacao_api") {
+    throw new Error(
+      "A coluna S da configuração está ocupada. Reserve-a para ID_OPERACAO_API antes de alterar classificações."
+    );
+  }
+}
+
+function gerenciarClassificacao(pedido, idOperacao) {
+  const operacao = String(pedido.operacao || "");
+  const fluxo = String(pedido.fluxo || "").trim();
+  const natureza = String(pedido.natureza || "").trim();
+  const categoria = String(pedido.categoria || "").trim();
+  const novaCategoria = String(pedido.novaCategoria || "").trim();
+  const subcategoria = String(pedido.subcategoria || "").trim();
+  const novaSubcategoria = String(pedido.novaSubcategoria || "").trim();
+
+  validarParFluxoNatureza(fluxo, natureza);
+  if (!categoria && operacao !== "criar-categoria") {
+    throw new Error("Informe uma categoria válida.");
+  }
+  if (
+    (operacao === "criar-categoria" || operacao === "renomear-categoria") &&
+    !(operacao === "criar-categoria" ? categoria : novaCategoria)
+  ) {
+    throw new Error("O nome da categoria não pode ficar vazio.");
+  }
+  if (
+    (operacao === "adicionar-subcategoria" ||
+      operacao === "renomear-subcategoria") &&
+    !(operacao === "adicionar-subcategoria" ? subcategoria : novaSubcategoria)
+  ) {
+    throw new Error("O nome da subcategoria não pode ficar vazio.");
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    const aba = garantirConfiguracaoClassificacao(planilha);
+    garantirColunaOperacaoClassificacao(aba);
+    const ultimaLinha = aba.getLastRow();
+    const valores = ultimaLinha < 2
+      ? []
+      : aba.getRange(2, 13, ultimaLinha - 1, 6).getDisplayValues();
+    const operacoes = ultimaLinha < 2
+      ? []
+      : aba.getRange(2, 19, ultimaLinha - 1, 1).getDisplayValues();
+    const operacaoJaAplicada = operacoes.some(function (linha) {
+      return String(linha[0]) === String(idOperacao);
+    });
+    const linhasCategoria = [];
+    valores.forEach(function (linha, indice) {
+      if (
+        normalizarChave(linha[0]) === normalizarChave(fluxo) &&
+        normalizarChave(linha[1]) === normalizarChave(natureza) &&
+        normalizarChave(linha[2]) === normalizarChave(categoria)
+      ) {
+        linhasCategoria.push(indice + 2);
+      }
+    });
+
+    if (operacao === "criar-categoria") {
+      const indiceExistente = valores.findIndex(function (linha) {
+        return normalizarChave(linha[0]) === normalizarChave(fluxo) &&
+          normalizarChave(linha[1]) === normalizarChave(natureza) &&
+          normalizarChave(linha[2]) === normalizarChave(categoria);
+      });
+      if (indiceExistente >= 0) {
+        const idOperacaoExistente = operacoes[indiceExistente]
+          ? operacoes[indiceExistente][0]
+          : "";
+        if (String(idOperacaoExistente) !== String(idOperacao)) {
+          throw new Error("Essa categoria já existe para esse tipo.");
+        }
+        return {
+          success: true,
+          classificacoes: obterConfiguracaoClassificacao(planilha).opcoes,
+          duplicadoIgnorado: true
+        };
+      }
+      const dimensoes = natureza === "Despesa"
+        ? ["Essencial|Não essencial", "Fixo|Variável|Periódico"]
+        : ["", ""];
+      aba.getRange(ultimaLinha + 1, 13, 1, 7).setValues([[
+        fluxo, natureza, categoria, "", dimensoes[0], dimensoes[1], idOperacao
+      ]]);
+    } else if (!linhasCategoria.length) {
+      const novaCategoriaJaExiste = operacao === "renomear-categoria" &&
+        valores.some(function (linha) {
+          return normalizarChave(linha[0]) === normalizarChave(fluxo) &&
+            normalizarChave(linha[1]) === normalizarChave(natureza) &&
+            normalizarChave(linha[2]) === normalizarChave(novaCategoria);
+        });
+      if (novaCategoriaJaExiste && operacaoJaAplicada) {
+        atualizarNomeClassificacaoHistorica(
+          planilha, fluxo, natureza, categoria, novaCategoria, "", ""
+        );
+        return {
+          success: true,
+          classificacoes: obterConfiguracaoClassificacao(planilha).opcoes,
+          duplicadoIgnorado: true
+        };
+      }
+      throw new Error("A categoria selecionada não foi encontrada.");
+    } else if (operacao === "renomear-categoria") {
+      const duplicada = valores.some(function (linha) {
+        return normalizarChave(linha[0]) === normalizarChave(fluxo) &&
+          normalizarChave(linha[1]) === normalizarChave(natureza) &&
+          normalizarChave(linha[2]) === normalizarChave(novaCategoria) &&
+          normalizarChave(linha[2]) !== normalizarChave(categoria);
+      });
+      if (duplicada && !operacaoJaAplicada) {
+        throw new Error("Já existe uma categoria com esse nome.");
+      }
+      linhasCategoria.forEach(function (linha) {
+        const dadosLinha = aba.getRange(linha, 13, 1, 7).getValues()[0];
+        dadosLinha[2] = novaCategoria;
+        dadosLinha[6] = idOperacao;
+        aba.getRange(linha, 13, 1, 7).setValues([dadosLinha]);
+      });
+      atualizarNomeClassificacaoHistorica(
+        planilha, fluxo, natureza, categoria, novaCategoria, "", ""
+      );
+    } else if (operacao === "adicionar-subcategoria") {
+      const indiceDuplicado = linhasCategoria.find(function (linha) {
+        return normalizarChave(
+          aba.getRange(linha, 16).getDisplayValue()
+        ) === normalizarChave(subcategoria);
+      });
+      if (indiceDuplicado) {
+        const indiceOperacao = indiceDuplicado - 2;
+        const idOperacaoExistente = operacoes[indiceOperacao]
+          ? operacoes[indiceOperacao][0]
+          : "";
+        if (String(idOperacaoExistente) !== String(idOperacao)) {
+          throw new Error("Essa subcategoria já existe nessa categoria.");
+        }
+        return {
+          success: true,
+          classificacoes: obterConfiguracaoClassificacao(planilha).opcoes,
+          duplicadoIgnorado: true
+        };
+      }
+      const modelo = aba.getRange(linhasCategoria[0], 13, 1, 7).getValues()[0];
+      modelo[3] = subcategoria;
+      modelo[6] = idOperacao;
+      aba.getRange(ultimaLinha + 1, 13, 1, 7).setValues([modelo]);
+    } else if (operacao === "renomear-subcategoria") {
+      if (!subcategoria) throw new Error("Selecione a subcategoria a editar.");
+      const linhasSubcategoria = linhasCategoria.filter(function (linha) {
+        return normalizarChave(
+          aba.getRange(linha, 16).getDisplayValue()
+        ) === normalizarChave(subcategoria);
+      });
+      if (!linhasSubcategoria.length) {
+        const nomeJaAtualizado = linhasCategoria.some(function (linha) {
+          return normalizarChave(
+            aba.getRange(linha, 16).getDisplayValue()
+          ) === normalizarChave(novaSubcategoria);
+        });
+        if (nomeJaAtualizado && operacaoJaAplicada) {
+          atualizarNomeClassificacaoHistorica(
+            planilha, fluxo, natureza, categoria, categoria,
+            subcategoria, novaSubcategoria
+          );
+          return {
+            success: true,
+            classificacoes: obterConfiguracaoClassificacao(planilha).opcoes,
+            duplicadoIgnorado: true
+          };
+        }
+        throw new Error("A subcategoria selecionada não foi encontrada.");
+      }
+      const duplicada = linhasCategoria.some(function (linha) {
+        return normalizarChave(
+          aba.getRange(linha, 16).getDisplayValue()
+        ) === normalizarChave(novaSubcategoria) &&
+          normalizarChave(novaSubcategoria) !== normalizarChave(subcategoria);
+      });
+      if (duplicada && !operacaoJaAplicada) {
+        throw new Error("Já existe essa subcategoria nessa categoria.");
+      }
+      linhasSubcategoria.forEach(function (linha) {
+        const dadosLinha = aba.getRange(linha, 13, 1, 7).getValues()[0];
+        dadosLinha[3] = novaSubcategoria;
+        dadosLinha[6] = idOperacao;
+        aba.getRange(linha, 13, 1, 7).setValues([dadosLinha]);
+      });
+      atualizarNomeClassificacaoHistorica(
+        planilha, fluxo, natureza, categoria, categoria,
+        subcategoria, novaSubcategoria
+      );
+    } else {
+      throw new Error("Operação de classificação inválida.");
+    }
+
+    return {
+      success: true,
+      classificacoes: obterConfiguracaoClassificacao(planilha).opcoes
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function atualizarNomeClassificacaoHistorica(
+  planilha, fluxo, natureza, categoriaAntiga, categoriaNova,
+  subcategoriaAntiga, subcategoriaNova
+) {
+  Object.keys(MESES).forEach(function (indice) {
+    const aba = obterAbaMensalConfigurada(planilha, MESES[indice]);
+    if (!aba) return;
+    const ultimaLinha = obterUltimaLinhaMovimentacoes(aba);
+    if (ultimaLinha < 2) return;
+
+    const linhas = aba.getRange(
+      2, 1, ultimaLinha - 1, COLUNAS_CLASSIFICACAO.ultimaColuna
+    ).getDisplayValues();
+    linhas.forEach(function (linha, indiceLinha) {
+      const fluxoLinha = linha[COLUNAS_CLASSIFICACAO.fluxo - 1] || linha[1];
+      const naturezaLinha = linha[COLUNAS_CLASSIFICACAO.natureza - 1];
+      if (
+        normalizarChave(fluxoLinha) !== normalizarChave(fluxo) ||
+        (naturezaLinha &&
+          normalizarChave(naturezaLinha) !== normalizarChave(natureza))
+      ) return;
+
+      const categoriaNovaGravada =
+        linha[COLUNAS_CLASSIFICACAO.categoria - 1];
+      const categoriaLegada = linha[3];
+      const categoriaCorresponde =
+        normalizarChave(categoriaNovaGravada) === normalizarChave(categoriaAntiga) ||
+        (!categoriaNovaGravada &&
+          normalizarChave(categoriaLegada) === normalizarChave(categoriaAntiga));
+      if (!categoriaCorresponde) return;
+
+      const numeroLinha = indiceLinha + 2;
+      if (
+        normalizarChave(categoriaLegada) === normalizarChave(categoriaAntiga)
+      ) {
+        aba.getRange(numeroLinha, 4).setValue(categoriaNova);
+      }
+      if (
+        normalizarChave(categoriaNovaGravada) === normalizarChave(categoriaAntiga)
+      ) {
+        aba.getRange(numeroLinha, COLUNAS_CLASSIFICACAO.categoria)
+          .setValue(categoriaNova);
+      }
+
+      if (!subcategoriaAntiga) return;
+      if (
+        normalizarChave(linha[4]) === normalizarChave(subcategoriaAntiga)
+      ) {
+        aba.getRange(numeroLinha, 5).setValue(subcategoriaNova);
+      }
+      if (
+        normalizarChave(linha[COLUNAS_CLASSIFICACAO.subcategoria - 1]) ===
+        normalizarChave(subcategoriaAntiga)
+      ) {
+        aba.getRange(
+          numeroLinha,
+          COLUNAS_CLASSIFICACAO.subcategoria
+        ).setValue(subcategoriaNova);
+      }
+    });
+  });
+}
+
+function doGet(e){
+  return responderJson({
+    success: false,
+    message: "Não autorizado. Utilize o endpoint autenticado."
+  });
+}
+
+function lerLinhasMes(aba) {
+  const cabecalhos = aba
+    .getRange(1, 1, 1, COLUNAS_CLASSIFICACAO.ultimaColuna)
+    .getDisplayValues()[0]
+    .map(normalizarChave);
+  const ultimaLinha = obterUltimaLinhaMovimentacoes(aba);
+
+  return {
+    cabecalhos: cabecalhos,
+    linhas: ultimaLinha < 2
+      ? []
+      : aba.getRange(2, 1, ultimaLinha - 1, COLUNAS_CLASSIFICACAO.ultimaColuna)
+        .getValues()
+  };
+}
+
+function classificarLinhaHistorica(linha, config, cabecalhos) {
+  const armazenada = obterValoresClassificacao(linha);
+  const idMeta = obterIdMetaDaLinha(linha, cabecalhos);
+  const idMovimentacao =
+    linha[COLUNAS_CLASSIFICACAO.idMovimentacao - 1] || linha[8] || "";
+
+  if (armazenada.fluxo || armazenada.natureza) {
+    return {
+      fluxo: armazenada.fluxo,
+      natureza: armazenada.natureza,
+      categoria: armazenada.categoria,
+      subcategoria: armazenada.subcategoria,
+      essencialidade: armazenada.essencialidade,
+      comportamento: armazenada.comportamento,
+      status: linha[COLUNAS_CLASSIFICACAO.status - 1] || "Classificada",
+      parcelado: linha[COLUNAS_CLASSIFICACAO.parcelado - 1] === true,
+      quantidadeParcelas: Number(
+        linha[COLUNAS_CLASSIFICACAO.quantidadeParcelas - 1]
+      ) || 1,
+      numeroParcela: Number(
+        linha[COLUNAS_CLASSIFICACAO.numeroParcela - 1]
+      ) || 1,
+      categoriaLegada: linha[3] || "",
+      subcategoriaLegada: linha[4] || "",
+      idMeta: idMeta,
+      idMovimentacao: idMovimentacao
+    };
+  }
+
+  const legado = obterClassificacaoLegada(
+    linha[1],
+    linha[3],
+    linha[4],
+    idMeta,
+    config
+  );
+  legado.parcelado =
+    linha[COLUNAS_CLASSIFICACAO.parcelado - 1] === true ||
+    normalizarChave(linha[COLUNAS_CLASSIFICACAO.parcelado - 1]) === "true";
+  legado.quantidadeParcelas = Number(
+    linha[COLUNAS_CLASSIFICACAO.quantidadeParcelas - 1]
+  ) || 1;
+  legado.numeroParcela = Number(
+    linha[COLUNAS_CLASSIFICACAO.numeroParcela - 1]
+  ) || 1;
+  legado.idMeta = idMeta;
+  legado.idMovimentacao = idMovimentacao;
+  return legado;
+}
+
+function obterDashboard() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const aba = obterNomeAbaMes(planilha, new Date());
+  const config = obterConfiguracaoClassificacao(planilha);
+  const dados = lerLinhasMes(aba);
+  const totais = {
+    receitas: 0,
+    despesas: 0,
+    despesasEssenciais: 0,
+    despesasNaoEssenciais: 0,
+    investimentos: 0,
+    aportesSonhos: 0,
+    entradasCaixa: 0,
+    saidasCaixa: 0
+  };
+
+  dados.linhas.forEach(function (linha) {
+    if (!linha[0]) return;
+    const valor = Number(linha[5]) || 0;
+    const classificacao = classificarLinhaHistorica(
+      linha,
+      config,
+      dados.cabecalhos
+    );
+
+    if (normalizarChave(classificacao.fluxo) === "entrada") {
+      totais.entradasCaixa += valor;
+    }
+    if (normalizarChave(classificacao.fluxo) === "saida") {
+      totais.saidasCaixa += valor;
+    }
+    if (classificacao.natureza === "Receita") {
+      totais.receitas += valor;
+    }
+    if (classificacao.natureza === "Despesa") {
+      totais.despesas += valor;
+      if (classificacao.essencialidade === "Essencial") {
+        totais.despesasEssenciais += valor;
+      }
+      if (classificacao.essencialidade === "Não essencial") {
+        totais.despesasNaoEssenciais += valor;
+      }
+    }
+    if (classificacao.natureza === "Investimento") {
+      totais.investimentos += valor;
+    }
+    if (classificacao.natureza === "Aporte para sonho") {
+      totais.aportesSonhos += valor;
+    }
+  });
+
+  return responderJson({
+    entrada: totais.receitas,
+    saida: totais.despesas,
+    saldo: totais.entradasCaixa - totais.saidasCaixa,
+    essencial: totais.despesasEssenciais,
+    naoEssencial: totais.despesasNaoEssenciais,
+    investimentos: totais.investimentos,
+    sonhos: totais.aportesSonhos,
+    receitas: totais.receitas,
+    despesas: totais.despesas,
+    despesasEssenciais: totais.despesasEssenciais,
+    despesasNaoEssenciais: totais.despesasNaoEssenciais,
+    aportesSonhos: totais.aportesSonhos,
+    saidasCaixa: totais.saidasCaixa
+  });
+}
+
+function obterHistorico() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const config = obterConfiguracaoClassificacao(planilha);
+  const historico = [];
+
+  Object.keys(MESES).forEach(function (indice) {
+    const aba = obterAbaMensalConfigurada(planilha, MESES[indice]);
+    if (!aba) return;
+    const dados = lerLinhasMes(aba);
+
+    dados.linhas.forEach(function (linha) {
+      if (!linha[0]) return;
+
+      const data = new Date(linha[0]);
+      if (isNaN(data.getTime())) return;
+      const classificacao = classificarLinhaHistorica(
+        linha,
+        config,
+        dados.cabecalhos
+      );
+      const pagamentoArmazenado =
+        linha[COLUNAS_CLASSIFICACAO.pagamento - 1] ||
+        (dados.cabecalhos[2] === "pagamento" ? linha[2] : "");
+
+      historico.push({
+        timestamp: data.getTime(),
+        data: Utilities.formatDate(
+          data,
+          Session.getScriptTimeZone(),
+          "dd/MM/yyyy"
+        ),
+        tipo: normalizarChave(classificacao.fluxo) === "entrada"
+          ? "ENTRADA"
+          : "SAÍDA",
+        fluxo: classificacao.fluxo,
+        natureza: classificacao.natureza,
+        pagamento: pagamentoArmazenado || "À vista",
+        categoria: linha[3] || classificacao.categoria || "",
+        subcategoria: linha[4] || classificacao.subcategoria || "",
+        categoriaNova: classificacao.categoria || "",
+        subcategoriaNova: classificacao.subcategoria || "",
+        categoriaLegada: classificacao.categoriaLegada || "",
+        subcategoriaLegada: classificacao.subcategoriaLegada || "",
+        essencialidade: classificacao.essencialidade || "",
+        comportamento: classificacao.comportamento || "",
+        statusClassificacao: classificacao.status,
+        parcelado: classificacao.parcelado,
+        quantidadeParcelas: classificacao.quantidadeParcelas,
+        parcela: classificacao.numeroParcela,
+        valor: Number(linha[5]) || 0,
+        observacao: linha[7] || "",
+        idMovimentacao: classificacao.idMovimentacao || "",
+        idMeta: classificacao.idMeta || ""
+      });
+    });
+  });
+
+  historico.sort(function (a, b) { return b.timestamp - a.timestamp; });
+  historico.forEach(function (item) { delete item.timestamp; });
+  return responderJson(historico);
+}
+
+function obterConfiguracoes() {
+  const config = obterConfiguracaoClassificacao(
+    SpreadsheetApp.openById(ID_PLANILHA)
+  );
+  return responderJson({
+    fluxos: ["Entrada", "Saída"],
+    naturezas: ["Receita", "Despesa", "Investimento", "Aporte para sonho"],
+    essencialidades: ["Essencial", "Não essencial"],
+    comportamentos: ["Fixo", "Variável", "Periódico"],
+    classificacoes: config.opcoes,
+    correspondenciasLegadas: config.correspondenciasLegadas
+  });
+}
+
+function obterSubcategorias(parametros) {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+
+  if (parametros && parametros.categoria) {
+    const config = obterConfiguracaoClassificacao(planilha);
+    const categoria = normalizarChave(parametros.categoria);
+    const natureza = normalizarChave(parametros.natureza || "");
+    const subcategoriasFiltradas = config.opcoes
+      .filter(function (opcao) {
+        return normalizarChave(opcao.categoria) === categoria &&
+          (!natureza || normalizarChave(opcao.natureza) === natureza) &&
+          opcao.subcategoria;
+      })
+      .map(function (opcao) { return opcao.subcategoria; });
+    return responderJson(Array.from(new Set(subcategoriasFiltradas)));
+  }
+
+  const aba = obterAbaConfiguracoes(planilha);
+  const ultimaLinha = aba.getLastRow();
+  if (ultimaLinha < 2) return responderJson([]);
+
+  const dados = aba.getRange(2, 5, ultimaLinha - 1, 1).getDisplayValues();
+  const resultado = [];
+  dados.forEach(function (linha) {
+    if (linha[0] && resultado.indexOf(linha[0]) < 0) {
+      resultado.push(linha[0]);
+    }
+  });
+  return responderJson(resultado);
+}
+
+function obterRelatorioMigracao() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const config = obterConfiguracaoClassificacao(planilha);
+  const relatorio = {
+    totalRegistros: 0,
+    jaNoNovoFormato: 0,
+    classificadosPorRegraLegada: 0,
+    pendentes: 0,
+    ambiguos: 0,
+    inconsistentes: 0,
+    porAba: {}
+  };
+
+  Object.keys(MESES).forEach(function (indice) {
+    const nomeConfigurado = MESES[indice];
+    let aba = planilha.getSheetByName(nomeConfigurado);
+    if (!aba) aba = planilha.getSheetByName(nomeConfigurado.replace("/", ""));
+    if (!aba) return;
+
+    const dados = lerLinhasMes(aba);
+    const contagemAba = {
+      total: 0,
+      jaNoNovoFormato: 0,
+      classificadosPorRegraLegada: 0,
+      pendentes: 0,
+      ambiguos: 0,
+      inconsistentes: 0
+    };
+
+    dados.linhas.forEach(function (linha) {
+      if (!linha[0]) return;
+      contagemAba.total++;
+      const classificacao = classificarLinhaHistorica(
+        linha,
+        config,
+        dados.cabecalhos
+      );
+      if (linha[COLUNAS_CLASSIFICACAO.fluxo - 1]) {
+        contagemAba.jaNoNovoFormato++;
+      } else {
+        contagemAba.classificadosPorRegraLegada++;
+      }
+      if (classificacao.status.indexOf("Pendente") === 0) {
+        contagemAba.pendentes++;
+      } else if (classificacao.status.indexOf("Ambíguo") === 0) {
+        contagemAba.ambiguos++;
+      } else if (classificacao.status.indexOf("Inconsistente") === 0) {
+        contagemAba.inconsistentes++;
+      }
+    });
+
+    relatorio.totalRegistros += contagemAba.total;
+    relatorio.jaNoNovoFormato += contagemAba.jaNoNovoFormato;
+    relatorio.classificadosPorRegraLegada +=
+      contagemAba.classificadosPorRegraLegada;
+    relatorio.pendentes += contagemAba.pendentes;
+    relatorio.ambiguos += contagemAba.ambiguos;
+    relatorio.inconsistentes += contagemAba.inconsistentes;
+    relatorio.porAba[aba.getName()] = contagemAba;
+  });
+
+  relatorio.modo = "prévia somente leitura; nenhum registro foi alterado";
+  return responderJson(relatorio);
+}
+
+function testePost() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const config = obterConfiguracaoClassificacao(planilha);
+  const teste = normalizarMovimentacao({
+    data: new Date().toISOString(),
+    tipo: "Despesa",
+    pagamento: "À vista",
+    categoria: "Não Essencial",
+    subcategoria: "Teste",
+    valor: 20
+  }, config, planilha);
+
+  return responderJson({
+    success: true,
+    somenteValidacao: true,
+    statusClassificacao: teste.classificacao.status
+  });
+}
+
+function obterMetas() {
+
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+
+  const abaMetas = planilha.getSheetByName("METAS");
+
+  const ultimaLinha = abaMetas.getLastRow();
+
+  if (ultimaLinha < 2) {
+    return ContentService
+      .createTextOutput(JSON.stringify([]))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const dadosMetas =
+    abaMetas.getRange(2, 1, ultimaLinha - 1, 8).getValues();
+
+  const metas = [];
+
+  dadosMetas.forEach(linha => {
+
+    if (!linha[0]) return;
+
+    metas.push({
+
+      idMeta: linha[0],
+
+      nome: linha[1] || "",
+
+      valorMeta: Number(linha[2]) || 0,
+
+      // COLUNA D
+      tipo: linha[3] || "DESEJO",
+
+      // COLUNA E
+      status: linha[4] || "ABERTA",
+
+      prioridade: linha[5] || "MÉDIA",
+
+      dataCriacao: linha[6] || "",
+
+      dataFinalizacao: linha[7] || "",
+
+      valorAtual: 0,
+
+      percentual: 0,
+
+      valorFaltante: Number(linha[2]) || 0
+
+    });
+
+  });
+
+
+  // ==========================================================
+  // SOMA DAS MOVIMENTAÇÕES VINCULADAS ÀS METAS
+  // ==========================================================
+
+  Object.keys(MESES).forEach(indice => {
+    const aba = obterAbaMensalConfigurada(planilha, MESES[indice]);
+    if (!aba) return;
+
+    const ultimaLinhaMes = obterUltimaLinhaMovimentacoes(aba);
+    if (ultimaLinhaMes < 2) return;
+
+    const cabecalhos = aba
+      .getRange(1, 1, 1, COLUNAS_CLASSIFICACAO.ultimaColuna)
+      .getDisplayValues()[0]
+      .map(normalizarChave);
+    const dados = aba
+      .getRange(
+        2,
+        1,
+        ultimaLinhaMes - 1,
+        COLUNAS_CLASSIFICACAO.ultimaColuna
+      )
+      .getValues();
+
+    dados.forEach(linha => {
+      const idMetaMovimentacao = obterIdMetaDaLinha(linha, cabecalhos);
+      if (!idMetaMovimentacao) return;
+
+      const meta = metas.find(item =>
+        String(item.idMeta) === String(idMetaMovimentacao)
+      );
+      if (!meta) return;
+
+      meta.valorAtual += Number(linha[5]) || 0;
+    });
+  });
+
+
+  // ==========================================================
+  // CALCULA PERCENTUAL E VALOR FALTANTE
+  // ==========================================================
+
+  metas.forEach(meta => {
+
+    if (meta.valorMeta > 0) {
+
+      meta.percentual =
+        (meta.valorAtual / meta.valorMeta) * 100;
+
+    }
+
+    meta.valorFaltante =
+      Math.max(
+        meta.valorMeta - meta.valorAtual,
+        0
+      );
+
+  });
+
+
+  return ContentService
+    .createTextOutput(JSON.stringify(metas))
+    .setMimeType(ContentService.MimeType.JSON);
+
+}
+
+function gerarIdMeta() {
+  const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+  const aba = planilha.getSheetByName("METAS");
+
+  const ultimaLinha = aba.getLastRow();
+
+  if (ultimaLinha < 2) {
+    return "M001";
+  }
+
+  const ids = aba.getRange(2, 1, ultimaLinha - 1, 1).getValues();
+
+  let maiorNumero = 0;
+
+  ids.forEach(linha => {
+    const id = String(linha[0] || "");
+
+    if (!id.startsWith("M")) return;
+
+    const numero = parseInt(id.substring(1), 10);
+
+    if (!isNaN(numero) && numero > maiorNumero) {
+      maiorNumero = numero;
+    }
+  });
+
+  return "M" + String(maiorNumero + 1).padStart(3, "0");
+}
+
+function garantirColunaIdOperacaoMeta(aba) {
+  if (aba.getMaxColumns() < 9) {
+    aba.insertColumnsAfter(
+      aba.getMaxColumns(),
+      9 - aba.getMaxColumns()
+    );
+  }
+
+  const cabecalho = String(aba.getRange(1, 9).getDisplayValue() || "").trim();
+  if (!cabecalho) {
+    const ultimaLinha = aba.getLastRow();
+    if (ultimaLinha >= 2) {
+      const preenchidos = aba.getRange(2, 9, ultimaLinha - 1, 1)
+        .getDisplayValues()
+        .some(function (linha) { return String(linha[0] || "").trim() !== ""; });
+      if (preenchidos) {
+        throw new Error(
+          "A coluna I da aba METAS contém dados e não pode ser usada para idempotência."
+        );
+      }
+    }
+    aba.getRange(1, 9).setValue("ID_OPERACAO_API");
+    return;
+  }
+  if (normalizarChave(cabecalho) !== "id_operacao_api") {
+    throw new Error(
+      "A coluna I da aba METAS está ocupada. Reserve essa coluna para ID_OPERACAO_API antes de criar metas idempotentes."
+    );
+  }
+}
+
+function criarMeta(meta, idOperacao) {
+  if (!identificadorOperacaoValido(idOperacao)) {
+    throw new Error("A criação da meta precisa de um identificador estável.");
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    const aba = planilha.getSheetByName("METAS");
+    garantirColunaIdOperacaoMeta(aba);
+
+    const ultimaLinha = aba.getLastRow();
+    if (ultimaLinha >= 2) {
+      const operacoes = aba.getRange(2, 9, ultimaLinha - 1, 1)
+        .getDisplayValues();
+      for (let indice = 0; indice < operacoes.length; indice++) {
+        if (String(operacoes[indice][0]) === idOperacao) {
+          return {
+            success: true,
+            idMeta: String(aba.getRange(indice + 2, 1).getDisplayValue()),
+            duplicadoIgnorado: true
+          };
+        }
+      }
+    }
+
+    const idMeta = gerarIdMeta();
+    let novaLinha = 2;
+    while (aba.getRange(novaLinha, 1).getValue() !== "") novaLinha++;
+
+    aba.getRange(novaLinha, 1, 1, 9).setValues([[
+      idMeta,
+      meta.nome,
+      Number(meta.valorMeta),
+      meta.tipo || "DESEJO",
+      "ABERTA",
+      meta.prioridade || "MÉDIA",
+      new Date(),
+      "",
+      idOperacao
+    ]]);
+
+    return {
+      success: true,
+      idMeta: idMeta
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function encerrarMeta(idMeta) {
+
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+
+    const aba = planilha.getSheetByName("METAS");
+
+    const ultimaLinha = aba.getLastRow();
+
+    if (ultimaLinha < 2) {
+        return {
+            success: false,
+            message: "Nenhuma meta cadastrada."
+        };
+    }
+
+    const dados = aba
+        .getRange(2, 1, ultimaLinha - 1, 8)
+        .getValues();
+
+    for (let i = 0; i < dados.length; i++) {
+
+        const linhaDados = dados[i];
+
+        const id = linhaDados[0];
+
+        if (String(id) !== String(idMeta)) {
+            continue;
+        }
+
+        const linha = i + 2;
+        const statusAtual = String(linhaDados[4] || "");
+        if (statusAtual !== "ABERTA") {
+            if (!linhaDados[7]) {
+                aba.getRange(linha, 8).setValue(new Date());
+            }
+            return {
+                success: true,
+                idMeta: idMeta,
+                status: statusAtual,
+                valorAtual: 0,
+                valorMeta: Number(linhaDados[2]) || 0,
+                duplicadoIgnorado: true
+            };
+        }
+        const valorMeta = Number(linhaDados[2]) || 0;
+
+        // =====================================================
+        // CALCULA O VALOR ATUAL DA META
+        // =====================================================
+
+        let valorAtual = 0;
+
+        Object.keys(MESES).forEach(indiceMes => {
+            const abaMes = obterAbaMensalConfigurada(planilha, MESES[indiceMes]);
+            if (!abaMes) return;
+
+            const ultimaLinhaMes = obterUltimaLinhaMovimentacoes(abaMes);
+            if (ultimaLinhaMes < 2) return;
+
+            const cabecalhos = abaMes
+                .getRange(1, 1, 1, COLUNAS_CLASSIFICACAO.ultimaColuna)
+                .getDisplayValues()[0]
+                .map(normalizarChave);
+            const movimentacoes = abaMes
+                .getRange(
+                    2,
+                    1,
+                    ultimaLinhaMes - 1,
+                    COLUNAS_CLASSIFICACAO.ultimaColuna
+                )
+                .getValues();
+
+            movimentacoes.forEach(movimentacao => {
+                const idMetaMovimentacao =
+                    obterIdMetaDaLinha(movimentacao, cabecalhos);
+
+                if (String(idMetaMovimentacao) === String(idMeta)) {
+                    valorAtual += Number(movimentacao[5]) || 0;
+                }
+            });
+        });
+
+        // =====================================================
+        // DEFINE O STATUS
+        // =====================================================
+
+        const status =
+            valorAtual >= valorMeta
+                ? "CONCLUIDA"
+                : "ENCERRADA";
+
+        // =====================================================
+        // ATUALIZA A META
+        // =====================================================
+
+        // E — STATUS
+        aba.getRange(linha, 5).setValue(status);
+
+        // H — DATA_FINALIZACAO
+        aba.getRange(linha, 8).setValue(new Date());
+
+        return {
+            success: true,
+            idMeta: idMeta,
+            status: status,
+            valorAtual: valorAtual,
+            valorMeta: valorMeta
+        };
+    }
+
+    return {
+        success: false,
+        message: "Meta não encontrada."
+    };
+}
+
+function concluirDesejo(idMeta) {
+
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    const aba = planilha.getSheetByName("METAS");
+    const ultimaLinha = aba.getLastRow();
+
+    if (ultimaLinha < 2) {
+        return {
+            success: false,
+            message: "Nenhuma meta cadastrada."
+        };
+    }
+
+    const dados = aba
+        .getRange(2, 1, ultimaLinha - 1, 8)
+        .getValues();
+
+    for (let i = 0; i < dados.length; i++) {
+
+        const linhaDados = dados[i];
+        const id = linhaDados[0];
+
+        if (String(id) !== String(idMeta)) {
+            continue;
+        }
+
+        const linha = i + 2;
+        const tipo = linhaDados[3];
+        const status = linhaDados[4];
+
+        if (tipo !== "DESEJO") {
+            return {
+                success: false,
+                message: "O registro informado não é um desejo."
+            };
+        }
+
+        if (status === "CONCLUIDA") {
+            if (!linhaDados[7]) {
+                aba.getRange(linha, 8).setValue(new Date());
+            }
+            return {
+                success: true,
+                idMeta: idMeta,
+                status: status,
+                duplicadoIgnorado: true
+            };
+        }
+        if (status !== "ABERTA") {
+            return {
+                success: false,
+                message: "Este desejo já foi finalizado."
+            };
+        }
+
+        aba.getRange(linha, 5).setValue("CONCLUIDA");
+        aba.getRange(linha, 8).setValue(new Date());
+
+        return {
+            success: true,
+            idMeta: idMeta,
+            status: "CONCLUIDA"
+        };
+    }
+
+    return {
+        success: false,
+        message: "Desejo não encontrado."
+    };
+}
+
+function transformarDesejoEmMeta(idMeta) {
+
+    const planilha = SpreadsheetApp.openById(ID_PLANILHA);
+    const aba = planilha.getSheetByName("METAS");
+    const ultimaLinha = aba.getLastRow();
+
+    if (ultimaLinha < 2) {
+        return {
+            success: false,
+            message: "Nenhuma meta cadastrada."
+        };
+    }
+
+    const dados = aba
+        .getRange(2, 1, ultimaLinha - 1, 8)
+        .getValues();
+
+    for (let i = 0; i < dados.length; i++) {
+
+        const linhaDados = dados[i];
+        const id = linhaDados[0];
+
+        if (String(id) !== String(idMeta)) {
+            continue;
+        }
+
+        const linha = i + 2;
+        const tipo = linhaDados[3];
+        const status = linhaDados[4];
+
+        if (tipo === "ATIVA" && status === "ABERTA") {
+            return {
+                success: true,
+                idMeta: idMeta,
+                tipo: "ATIVA",
+                status: "ABERTA",
+                duplicadoIgnorado: true
+            };
+        }
+        if (tipo !== "DESEJO") {
+            return {
+                success: false,
+                message: "O registro informado não é um desejo."
+            };
+        }
+
+        if (status !== "ABERTA") {
+            return {
+                success: false,
+                message: "Este desejo já foi finalizado."
+            };
+        }
+
+        aba.getRange(linha, 4).setValue("ATIVA");
+
+        return {
+            success: true,
+            idMeta: idMeta,
+            tipo: "ATIVA",
+            status: "ABERTA"
+        };
+    }
+
+    return {
+        success: false,
+        message: "Desejo não encontrado."
+    };
+}

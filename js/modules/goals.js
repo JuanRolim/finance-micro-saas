@@ -687,6 +687,11 @@ function inicializarBotoesAtualizarMeta() {
             registroAtual.idMeta = idMeta;
             registroAtual.tipo = "Despesa";
             registroAtual.categoria = "Sonhos";
+            registroAtual.fluxo = "Saída";
+            registroAtual.natureza = "Aporte para sonho";
+            registroAtual.subcategoria = "Aporte para meta";
+            registroAtual.essencialidade = "";
+            registroAtual.comportamento = "";
 
             etapaAtual = ETAPAS.VALOR;
 
@@ -770,6 +775,7 @@ function inicializarNavegacaoMetas() {
     const btnHistorico = document.getElementById("btnHistorico");
     const btnNovaMovimentacao = document.getElementById("btnNovaMovimentacao");
     const btnMetas = document.getElementById("btnMetas");
+    const btnMais = document.getElementById("btnMais");
 
     if (btnDashboard) {
         btnDashboard.addEventListener("click", () => {
@@ -792,6 +798,12 @@ function inicializarNavegacaoMetas() {
     if (btnMetas) {
         btnMetas.addEventListener("click", () => {
             navegar("metas");
+        });
+    }
+
+    if (btnMais) {
+        btnMais.addEventListener("click", () => {
+            navegar("settings");
         });
     }
 }

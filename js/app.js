@@ -36,6 +36,21 @@ async function navegar(tela) {
         case "settings":
 
             app.innerHTML = renderSettings();
+            await inicializarSettings();
+
+            break;
+
+        case "categories":
+
+            app.innerHTML = renderTelaCategorias();
+            await inicializarTelaCategorias();
+
+            break;
+
+        case "analysis":
+
+            app.innerHTML = renderAnalysis();
+            await inicializarAnalysis();
 
             break;
 

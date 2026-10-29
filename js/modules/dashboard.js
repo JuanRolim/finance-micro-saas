@@ -212,6 +212,7 @@ function renderDashboard() {
 
             <main class="app-content dashboard-content">
 
+                <div id="dashboardApiError" class="card" role="alert" hidden></div>
                 ${renderSaldo()}
                 ${renderResumo()}
                 <div id="resumoMensalContainer">
@@ -240,7 +241,7 @@ function renderDashboard() {
                     <span class="bottom-nav__label">Metas</span>
                 </button>
 
-                <button class="bottom-nav__item" type="button">
+                <button class="bottom-nav__item" type="button" id="btnMais">
                     <span class="bottom-nav__icon">⋯</span>
                     <span class="bottom-nav__label">Mais</span>
                 </button>
@@ -290,6 +291,10 @@ document
 
     });
 
+    document
+        .getElementById("btnMais")
+        .addEventListener("click", () => navegar("settings"));
+
     /* ==========================
        CARREGA DADOS
     ========================== */
@@ -333,6 +338,12 @@ document
     }catch(erro){
 
         console.error("Erro ao carregar dashboard:", erro);
+        const avisoApi = document.getElementById("dashboardApiError");
+        if (avisoApi) {
+            avisoApi.textContent = erro.message ||
+                "Não foi possível carregar os dados financeiros. Verifique a conexão com a API.";
+            avisoApi.hidden = false;
+        }
 
     }
 
@@ -363,4 +374,3 @@ function aplicarMascaraMoeda(event){
     event.target.value = valor;
 
 }
-

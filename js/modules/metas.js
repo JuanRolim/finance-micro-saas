@@ -320,6 +320,7 @@ function renderMetas() {
                 <button
                     class="bottom-nav__item"
                     type="button"
+                    id="btnMais"
                 >
                     <span class="bottom-nav__icon">⋯</span>
                     <span class="bottom-nav__label">Mais</span>

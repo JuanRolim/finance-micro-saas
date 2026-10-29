@@ -1,0 +1,91 @@
+@media (min-width: 760px) {
+    .app-container.analysis-page,
+    .app-container.settings-page,
+    .app-container.history-page {
+        width: 100%;
+        max-width: 1180px;
+        margin: 24px auto;
+        min-height: calc(100vh - 48px);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-md);
+    }
+
+    .analysis-content,
+    .settings-content,
+    .history-content {
+        padding: 24px 32px 32px;
+    }
+
+    .analysis-metrics {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .analysis-split-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .monthly-chart__bars {
+        height: 210px;
+    }
+
+    .monthly-chart__month {
+        flex-basis: 60px;
+    }
+
+    .monthly-chart__bar {
+        width: 14px;
+    }
+}
+
+@media (max-width: 560px) {
+    .category-management-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .category-management-toolbar .primary-button {
+        width: 100%;
+    }
+
+    .history-toolbar {
+        flex-direction: column;
+    }
+
+    .history-toolbar .history-filter {
+        min-height: 42px;
+    }
+
+    .history-card {
+        align-items: flex-start;
+        gap: 9px;
+        padding: 11px;
+    }
+
+    .history-icon {
+        width: 36px;
+        height: 36px;
+        flex: 0 0 36px;
+    }
+
+    .history-value {
+        max-width: 100px;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .analysis-split-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-chart-table > div {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .analysis-chart-table > div > span:nth-child(odd) {
+        text-align: right;
+    }
+
+    .finance-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

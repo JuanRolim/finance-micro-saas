@@ -1,0 +1,156 @@
+# CONCLUIR A SEGURANÇA E O FUNCIONAMENTO DO APLICATIVO FINANCEIRO NA VERCEL
+
+## Objetivo
+
+Quero deixar o aplicativo financeiro pronto para uso real, acessível pelo domínio HTTPS da Vercel, protegido por Vercel Authentication e integrado ao Google Apps Script e ao Google Sheets.
+
+Somente eu utilizarei o aplicativo.
+
+A função `api/finance.js` já existe e encaminha as requisições ao Apps Script. O frontend já utiliza a rota relativa `/api/finance`. Não quero recriar a arquitetura nem reescrever o aplicativo.
+
+O uso diário será pelo endereço HTTPS publicado. Não é mais necessário tentar permitir acesso aos dados privados abrindo `index.html` diretamente por `file://`.
+
+## 1. Inspecionar o projeto
+
+Antes de alterar arquivos:
+
+- Leia `api.js`, `api/finance.js`, `transaction.js`, `dashboard.js` e `app.js`.
+- Leia o código `Code.gs` do Apps Script, se estiver disponível no projeto.
+- Identifique todas as operações de leitura e escrita.
+- Verifique os testes existentes e as proteções de idempotência.
+- Preserve as alterações existentes e não descarte modificações do usuário.
+
+Produza um plano curto e depois execute as alterações necessárias.
+
+## 2. Proteger todos os deployments da Vercel
+
+A proteção de produção por Vercel Authentication será configurada manualmente no painel da Vercel, com o escopo All Deployments.
+
+Não presuma que o código-fonte ativa essa proteção automaticamente.
+
+Verifique se o frontend e a função `api/finance.js` utilizam a mesma origem e se o frontend faz chamadas relativas, como `/api/finance`.
+
+Não crie uma segunda API nem introduza uma nova dependência de framework sem necessidade.
+
+## 3. Proteger a comunicação entre a Vercel e o Apps Script
+
+A investigação anterior encontrou uma falha importante: a função `api/finance.js` não autentica efetivamente as operações, e a checagem de `Origin` não substitui autenticação.
+
+Implemente autenticação de servidor a servidor usando um segredo compartilhado forte, independente e armazenado fora do frontend.
+
+Requisitos:
+
+- Criar uma variável de ambiente privada na Vercel, por exemplo `APPS_SCRIPT_SHARED_SECRET`.
+- Guardar o segredo correspondente nas propriedades do Apps Script, utilizando `PropertiesService`.
+- Gerar um segredo aleatório forte; não utilizar valores previsíveis.
+- Nunca incluir o segredo em arquivos JavaScript entregues ao navegador, HTML, repositório público ou logs.
+- Fazer a função `api/finance.js` autenticar as chamadas ao Apps Script em todas as operações.
+- Fazer o Apps Script rejeitar chamadas sem segredo válido.
+- Aplicar a validação tanto a `doGet(e)` quanto a `doPost(e)`, conforme o contrato final da API.
+- Proteger dashboard, histórico, metas, categorias, subcategorias e todas as operações de escrita.
+- Não confiar apenas em CORS, `Origin`, nomes de ações ou na URL pública da implantação como mecanismo de autenticação.
+- Não aceitar o segredo do Apps Script enviado pelo navegador.
+- Não permitir que o cliente escolha livremente uma URL de destino para a função intermediária.
+
+Prefira enviar as operações ao Apps Script por POST, quando isso permitir evitar colocar o segredo em parâmetros de URL. Se a implementação exigir outro formato, documente a justificativa e os riscos.
+
+Se necessário, adapte `doPost(e)` para encaminhar também operações de leitura, preservando os nomes de ações e os formatos esperados pelo frontend.
+
+Se houver incompatibilidade com a estrutura atual, resolva-a de forma centralizada.
+
+**Importante:** como a implantação do Apps Script pode estar acessível publicamente, não considere o segredo seguro se ele estiver embutido no JavaScript do navegador. A validação precisa ocorrer no Apps Script e o segredo precisa ser fornecido somente pela função server-side da Vercel.
+
+## 4. Não deixar implantações antigas vulneráveis
+
+A URL atual do Apps Script já foi utilizada diretamente pelo frontend.
+
+Investigue como impedir que uma implantação antiga, sem validação do segredo, continue permitindo acesso às informações.
+
+Se for necessário publicar uma nova implantação protegida e revisar ou revogar a anterior, forneça os passos exatos.
+
+Não revogue uma implantação antes de confirmar que a nova está funcionando e que a migração não interromperá o aplicativo.
+
+Não afirme que a implantação antiga foi protegida sem acesso real às configurações do Apps Script.
+
+## 5. Tratar todas as operações de forma consistente
+
+Todas as chamadas devem passar pelo mecanismo de autenticação definido.
+
+Preserve:
+
+- Dashboard.
+- Histórico.
+- Categorias e subcategorias.
+- Metas.
+- Receitas e despesas.
+- Parcelamento.
+- Classificação atual.
+- Observações.
+- Formas de pagamento.
+- Fórmulas e estrutura da planilha.
+
+Não retorne dados simulados quando a API falhar.
+
+Não exponha o segredo em mensagens de erro.
+
+## 6. Garantir idempotência
+
+Revise a proteção contra duplicidade encontrada na investigação anterior.
+
+Confirme que as movimentações, o parcelamento e as demais operações de escrita que podem ser repetidas têm um identificador de operação estável e tratamento idempotente no backend.
+
+Se uma resposta se perder após a gravação, uma nova tentativa deve reconhecer a operação anterior e não duplicar os dados.
+
+Adapte as operações de criação, atualização ou encerramento de metas quando necessário.
+
+Não gere novos identificadores a cada repetição da mesma operação.
+
+Não faça retries automáticos de gravações sem uma proteção idempotente comprovada.
+
+## 7. Testar de ponta a ponta
+
+Execute os testes automatizados disponíveis e crie novos quando necessário.
+
+Teste:
+
+1. Abertura do domínio HTTPS publicado.
+2. Bloqueio do acesso anônimo.
+3. Acesso autenticado pela minha conta Vercel.
+4. Consulta do dashboard.
+5. Consulta do histórico.
+6. Consulta de metas, categorias e subcategorias.
+7. Salvamento de uma receita.
+8. Salvamento de uma despesa.
+9. Salvamento parcelado.
+10. Repetição da mesma operação sem duplicidade.
+11. Chamada direta ao Apps Script sem segredo válido, que deve ser rejeitada.
+12. Chamada direta à função intermediária sem passar pela proteção esperada, que não deve permitir acesso não autorizado.
+13. Falhas de rede, respostas inválidas e erros do backend.
+14. Atualização do histórico e do dashboard após uma gravação.
+
+Use dados de teste identificáveis e evite modificar registros financeiros reais.
+
+Diferencie testes simulados de testes realmente executados na Vercel, no Apps Script e na planilha.
+
+## 8. Preparar a implantação
+
+Não afirme que a proteção ou o segredo foram configurados no painel se não tiver acesso para executar essa ação.
+
+Ao terminar o código, forneça um checklist de implantação manual contendo:
+
+- Como configurar a proteção Vercel Authentication para All Deployments.
+- Como criar `APPS_SCRIPT_SHARED_SECRET` nas variáveis de ambiente da Vercel.
+- Como armazenar o mesmo segredo nas propriedades do Apps Script.
+- Como atualizar e publicar uma nova implantação do Apps Script.
+- Como garantir que a Vercel utiliza a URL correta da implantação.
+- Como fazer um novo deployment da Vercel.
+- Como testar o acesso anônimo e autenticado.
+- Como confirmar que a gravação foi efetivamente realizada na planilha.
+
+Não inclua segredos reais no relatório final.
+
+## Critério de conclusão
+
+O aplicativo deve funcionar pelo domínio HTTPS protegido, com consultas e gravações reais, sem expor dados financeiros ou credenciais a usuários não autorizados.
+
+Não declare o trabalho concluído apenas porque os testes unitários passaram. Informe exatamente quais testes de integração ainda dependem de implantação ou acesso manual.
