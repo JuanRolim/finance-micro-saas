@@ -1,156 +1,200 @@
-# CONCLUIR A SEGURANÇA E O FUNCIONAMENTO DO APLICATIVO FINANCEIRO NA VERCEL
+# PROMPT — Diagnosticar, corrigir e testar a API do Finance Micro SaaS
 
-## Objetivo
+## 1. Objetivo principal
 
-Quero deixar o aplicativo financeiro pronto para uso real, acessível pelo domínio HTTPS da Vercel, protegido por Vercel Authentication e integrado ao Google Apps Script e ao Google Sheets.
+Quero que você assuma a responsabilidade de diagnosticar, corrigir e validar o problema de comunicação entre a API do meu projeto Finance Micro SaaS, hospedado na Vercel, e o Google Apps Script, que utiliza uma planilha do Google Sheets como banco de dados.
 
-Somente eu utilizarei o aplicativo.
+**O objetivo é entregar o aplicativo funcionando corretamente, com a API conseguindo consultar e retornar os dados reais da planilha.**
 
-A função `api/finance.js` já existe e encaminha as requisições ao Apps Script. O frontend já utiliza a rota relativa `/api/finance`. Não quero recriar a arquitetura nem reescrever o aplicativo.
+Não quero apenas uma análise, sugestões ou um relatório de possíveis causas. Quero que você investigue o problema, implemente as correções necessárias, execute os testes e entregue a solução validada.
 
-O uso diário será pelo endereço HTTPS publicado. Não é mais necessário tentar permitir acesso aos dados privados abrindo `index.html` diretamente por `file://`.
+## 2. Contexto importante
 
-## 1. Inspecionar o projeto
+O código do aplicativo frontend funciona perfeitamente. Não quero que você refaça o aplicativo nem altere funcionalidades que já estão funcionando.
 
-Antes de alterar arquivos:
+O problema atual está na API e na conexão entre os serviços.
 
-- Leia `api.js`, `api/finance.js`, `transaction.js`, `dashboard.js` e `app.js`.
-- Leia o código `Code.gs` do Apps Script, se estiver disponível no projeto.
-- Identifique todas as operações de leitura e escrita.
-- Verifique os testes existentes e as proteções de idempotência.
-- Preserve as alterações existentes e não descarte modificações do usuário.
+O projeto utiliza a seguinte arquitetura:
 
-Produza um plano curto e depois execute as alterações necessárias.
+- **Frontend:** interface do Finance Micro SaaS.
+- **API:** endpoint serverless hospedado na Vercel, no arquivo `api/finance.js`.
+- **Backend de dados:** Google Apps Script.
+- **Banco de dados:** Google Sheets.
 
-## 2. Proteger todos os deployments da Vercel
+A comunicação deve seguir o fluxo:
 
-A proteção de produção por Vercel Authentication será configurada manualmente no painel da Vercel, com o escopo All Deployments.
+Frontend → API da Vercel → Google Apps Script → Google Sheets → Google Apps Script → API da Vercel → Frontend.
 
-Não presuma que o código-fonte ativa essa proteção automaticamente.
+O aplicativo precisa conseguir consultar os dados da planilha e apresentar as informações corretamente na interface.
 
-Verifique se o frontend e a função `api/finance.js` utilizam a mesma origem e se o frontend faz chamadas relativas, como `/api/finance`.
+## 3. Alterações e configurações já realizadas na Vercel
 
-Não crie uma segunda API nem introduza uma nova dependência de framework sem necessidade.
+Já configurei o projeto na Vercel e realizei alterações relacionadas à conexão da API.
 
-## 3. Proteger a comunicação entre a Vercel e o Apps Script
+Considere as seguintes informações:
 
-A investigação anterior encontrou uma falha importante: a função `api/finance.js` não autentica efetivamente as operações, e a checagem de `Origin` não substitui autenticação.
+1. O projeto está hospedado na Vercel.
+2. O arquivo responsável pela API é `api/finance.js`.
+3. Foram configuradas as variáveis de ambiente:
+   - `APPS_SCRIPT_URL`: URL completa do deployment do Google Apps Script, terminada em `/exec`.
+   - `APPS_SCRIPT_SHARED_SECRET`: segredo compartilhado utilizado para autenticar a comunicação entre a API e o Apps Script.
+4. A proteção de acesso da Vercel está habilitada para todos os deployments. Essa proteção deve ser preservada, pois o aplicativo é de uso pessoal.
+5. Já realizei testes no endpoint da API da Vercel pelo navegador e pelo DevTools.
 
-Implemente autenticação de servidor a servidor usando um segredo compartilhado forte, independente e armazenado fora do frontend.
+Um dos testes apresentou a seguinte requisição:
 
-Requisitos:
+`GET /api/finance?acao=dashboard&t=1793310456424`
 
-- Criar uma variável de ambiente privada na Vercel, por exemplo `APPS_SCRIPT_SHARED_SECRET`.
-- Guardar o segredo correspondente nas propriedades do Apps Script, utilizando `PropertiesService`.
-- Gerar um segredo aleatório forte; não utilizar valores previsíveis.
-- Nunca incluir o segredo em arquivos JavaScript entregues ao navegador, HTML, repositório público ou logs.
-- Fazer a função `api/finance.js` autenticar as chamadas ao Apps Script em todas as operações.
-- Fazer o Apps Script rejeitar chamadas sem segredo válido.
-- Aplicar a validação tanto a `doGet(e)` quanto a `doPost(e)`, conforme o contrato final da API.
-- Proteger dashboard, histórico, metas, categorias, subcategorias e todas as operações de escrita.
-- Não confiar apenas em CORS, `Origin`, nomes de ações ou na URL pública da implantação como mecanismo de autenticação.
-- Não aceitar o segredo do Apps Script enviado pelo navegador.
-- Não permitir que o cliente escolha livremente uma URL de destino para a função intermediária.
+O resultado foi `200 OK`, mas isso, isoladamente, não comprova que os dados da planilha estão sendo consultados e retornados corretamente.
 
-Prefira enviar as operações ao Apps Script por POST, quando isso permitir evitar colocar o segredo em parâmetros de URL. Se a implementação exigir outro formato, documente a justificativa e os riscos.
+**Não presuma que a conexão está funcionando só porque a API responde com HTTP 200.** Verifique também o corpo da resposta, o conteúdo retornado pelo Apps Script e os dados efetivamente recebidos pelo frontend.
 
-Se necessário, adapte `doPost(e)` para encaminhar também operações de leitura, preservando os nomes de ações e os formatos esperados pelo frontend.
+Não exponha o segredo compartilhado no frontend, em logs públicos, em respostas de erro ou no código-fonte público.
 
-Se houver incompatibilidade com a estrutura atual, resolva-a de forma centralizada.
+Se precisar alterar variáveis de ambiente, preserve os valores válidos existentes sempre que possível. Não invente novos segredos nem substitua configurações sem necessidade.
 
-**Importante:** como a implantação do Apps Script pode estar acessível publicamente, não considere o segredo seguro se ele estiver embutido no JavaScript do navegador. A validação precisa ocorrer no Apps Script e o segredo precisa ser fornecido somente pela função server-side da Vercel.
+## 4. Código do Google Apps Script
 
-## 4. Não deixar implantações antigas vulneráveis
+O código atual do Google Apps Script estará disponível no arquivo:
 
-A URL atual do Apps Script já foi utilizada diretamente pelo frontend.
+**`apps script.txt`**
 
-Investigue como impedir que uma implantação antiga, sem validação do segredo, continue permitindo acesso às informações.
+Leia esse arquivo integralmente antes de realizar alterações.
 
-Se for necessário publicar uma nova implantação protegida e revisar ou revogar a anterior, forneça os passos exatos.
+Analise o funcionamento do `doPost`, do `doGet`, das funções de consulta à planilha, da autenticação por segredo compartilhado e da serialização das respostas JSON.
 
-Não revogue uma implantação antes de confirmar que a nova está funcionando e que a migração não interromperá o aplicativo.
+Verifique especialmente se as funções de consulta estão retornando objetos JavaScript comuns ou objetos `ContentService.TextOutput`, e se existe alguma serialização duplicada capaz de produzir respostas vazias, como `{}`.
 
-Não afirme que a implantação antiga foi protegida sem acesso real às configurações do Apps Script.
+Essa é uma hipótese que precisa ser investigada, não uma conclusão que deve ser aceita sem testes.
 
-## 5. Tratar todas as operações de forma consistente
+Não presuma que o problema está exclusivamente no Apps Script ou exclusivamente na Vercel. Investigue toda a cadeia de comunicação e identifique a causa real.
 
-Todas as chamadas devem passar pelo mecanismo de autenticação definido.
+## 5. Diagnóstico obrigatório
 
-Preserve:
+Inspecione o projeto e identifique a causa raiz do problema.
 
-- Dashboard.
-- Histórico.
-- Categorias e subcategorias.
-- Metas.
-- Receitas e despesas.
-- Parcelamento.
-- Classificação atual.
-- Observações.
-- Formas de pagamento.
-- Fórmulas e estrutura da planilha.
+Verifique, no mínimo:
 
-Não retorne dados simulados quando a API falhar.
+- Se `api/finance.js` está recebendo e interpretando corretamente os parâmetros das requisições.
+- Se as ações suportadas pelo endpoint correspondem às ações esperadas pelo Apps Script.
+- Se a variável `APPS_SCRIPT_URL` contém a URL correta e aponta para o deployment adequado.
+- Se o deployment do Apps Script está atualizado e acessível para as requisições autenticadas.
+- Se o método HTTP, o corpo da requisição e o formato dos parâmetros estão corretos.
+- Se o segredo compartilhado está sendo enviado e validado corretamente.
+- Se as permissões de execução do Apps Script permitem o acesso necessário à planilha.
+- Se o Apps Script está lendo a planilha correta e encontrando os dados esperados.
+- Se as respostas do Apps Script são serializadas corretamente em JSON.
+- Se a API da Vercel está interpretando e encaminhando essas respostas sem perder informações.
+- Se a proteção da Vercel, redirecionamentos, erros de autenticação, cache ou configurações de deployment estão interferindo nas requisições.
+- Se existem erros silenciosos, tratamento inadequado de exceções ou respostas de sucesso emitidas mesmo quando a consulta falha.
 
-Não exponha o segredo em mensagens de erro.
+Utilize os logs disponíveis, o código existente e testes controlados para distinguir claramente cada etapa.
 
-## 6. Garantir idempotência
+## 6. Corrija o problema de forma definitiva
 
-Revise a proteção contra duplicidade encontrada na investigação anterior.
+Após identificar a causa raiz:
 
-Confirme que as movimentações, o parcelamento e as demais operações de escrita que podem ser repetidas têm um identificador de operação estável e tratamento idempotente no backend.
+1. Implemente as correções necessárias na API.
+2. Corrija o Google Apps Script, caso seja necessário.
+3. Preserve o funcionamento do frontend.
+4. Preserve a autenticação e a proteção de acesso existentes.
+5. Evite alterações desnecessárias na arquitetura.
+6. Não remova validações de segurança apenas para fazer os testes passarem.
+7. Não substitua a integração real por dados fictícios, mocks ou respostas estáticas.
+8. Não considere uma requisição bem-sucedida se a API estiver retornando dados vazios indevidamente.
+9. Garanta que erros sejam tratados e reportados de maneira útil, sem expor segredos.
 
-Se uma resposta se perder após a gravação, uma nova tentativa deve reconhecer a operação anterior e não duplicar os dados.
+Se houver necessidade de publicar uma nova versão do Apps Script, explique essa necessidade, realize a atualização se tiver acesso autorizado e confirme qual deployment deve ser utilizado.
 
-Adapte as operações de criação, atualização ou encerramento de metas quando necessário.
+Se alguma configuração precisar ser atualizada manualmente por mim na Vercel, informe exatamente o que deve ser alterado, onde e por quê. Não presuma que uma alteração no código atualiza automaticamente as variáveis de ambiente ou o deployment publicado.
 
-Não gere novos identificadores a cada repetição da mesma operação.
+## 7. Testes obrigatórios antes da entrega
 
-Não faça retries automáticos de gravações sem uma proteção idempotente comprovada.
+**Não entregue o trabalho apenas porque o código compila ou porque a API retorna HTTP 200.**
 
-## 7. Testar de ponta a ponta
+Execute os testes reais possíveis e valide o caminho completo entre a API e a planilha.
 
-Execute os testes automatizados disponíveis e crie novos quando necessário.
+### Teste 1 — Conectividade
 
-Teste:
+- Confirmar que a API da Vercel consegue chamar o Google Apps Script.
+- Confirmar que o Apps Script recebe e valida a autenticação.
+- Confirmar que a consulta à planilha é executada.
 
-1. Abertura do domínio HTTPS publicado.
-2. Bloqueio do acesso anônimo.
-3. Acesso autenticado pela minha conta Vercel.
-4. Consulta do dashboard.
-5. Consulta do histórico.
-6. Consulta de metas, categorias e subcategorias.
-7. Salvamento de uma receita.
-8. Salvamento de uma despesa.
-9. Salvamento parcelado.
-10. Repetição da mesma operação sem duplicidade.
-11. Chamada direta ao Apps Script sem segredo válido, que deve ser rejeitada.
-12. Chamada direta à função intermediária sem passar pela proteção esperada, que não deve permitir acesso não autorizado.
-13. Falhas de rede, respostas inválidas e erros do backend.
-14. Atualização do histórico e do dashboard após uma gravação.
+### Teste 2 — Dashboard
 
-Use dados de teste identificáveis e evite modificar registros financeiros reais.
+- Consultar a ação `dashboard`.
+- Verificar se a API retorna um JSON válido.
+- Conferir se os dados retornados correspondem aos valores reais da planilha.
+- Confirmar que o frontend consegue utilizar esses dados.
 
-Diferencie testes simulados de testes realmente executados na Vercel, no Apps Script e na planilha.
+### Teste 3 — Histórico
 
-## 8. Preparar a implantação
+- Consultar a ação `historico`.
+- Confirmar que os registros reais da planilha são retornados no formato esperado.
+- Verificar se a resposta não está sendo transformada indevidamente em `{}` ou em uma lista vazia.
 
-Não afirme que a proteção ou o segredo foram configurados no painel se não tiver acesso para executar essa ação.
+### Teste 4 — Demais consultas
 
-Ao terminar o código, forneça um checklist de implantação manual contendo:
+Testar as demais ações de leitura implementadas pelo projeto, incluindo, quando existentes:
 
-- Como configurar a proteção Vercel Authentication para All Deployments.
-- Como criar `APPS_SCRIPT_SHARED_SECRET` nas variáveis de ambiente da Vercel.
-- Como armazenar o mesmo segredo nas propriedades do Apps Script.
-- Como atualizar e publicar uma nova implantação do Apps Script.
-- Como garantir que a Vercel utiliza a URL correta da implantação.
-- Como fazer um novo deployment da Vercel.
-- Como testar o acesso anônimo e autenticado.
-- Como confirmar que a gravação foi efetivamente realizada na planilha.
+- `subcategorias`;
+- `configuracoes`;
+- `metas`.
 
-Não inclua segredos reais no relatório final.
+Validar os formatos das respostas e a compatibilidade com o frontend.
 
-## Critério de conclusão
+### Teste 5 — Segurança e erros
 
-O aplicativo deve funcionar pelo domínio HTTPS protegido, com consultas e gravações reais, sem expor dados financeiros ou credenciais a usuários não autorizados.
+- Confirmar que a API continua protegida.
+- Verificar o comportamento diante de autenticação inválida, parâmetros inválidos e falhas de comunicação.
+- Garantir que os erros não revelem o segredo compartilhado.
+- Confirmar que as falhas não sejam apresentadas como consultas bem-sucedidas.
 
-Não declare o trabalho concluído apenas porque os testes unitários passaram. Informe exatamente quais testes de integração ainda dependem de implantação ou acesso manual.
+### Teste 6 — Regressão
+
+- Verificar se as correções não quebraram as funcionalidades já existentes.
+- Confirmar que o frontend continua funcionando.
+- Validar as principais telas e operações relacionadas aos dados financeiros.
+
+## 8. Critérios objetivos de aprovação
+
+O trabalho só poderá ser considerado concluído quando:
+
+- A API da Vercel conseguir consultar o Apps Script.
+- O Apps Script conseguir acessar a planilha correta.
+- A ação `dashboard` retornar os dados reais esperados.
+- A ação `historico` retornar os registros reais esperados.
+- As demais consultas implementadas funcionarem corretamente.
+- As respostas forem JSON válidos e compatíveis com o frontend.
+- O aplicativo apresentar os dados corretamente na interface.
+- Não houver erros conhecidos de conexão, serialização ou autenticação.
+- A proteção de acesso continuar funcionando.
+- Os testes realizados estiverem documentados, com resultados verificáveis.
+
+Se não houver dados cadastrados na planilha, diferencie explicitamente uma planilha legitimamente vazia de uma falha de consulta. Não invente registros para fazer o teste passar.
+
+## 9. Como quero receber a entrega
+
+Ao finalizar, apresente:
+
+1. **Causa raiz:** explique objetivamente o que estava errado.
+2. **Correções realizadas:** liste os arquivos alterados e as mudanças efetuadas.
+3. **Configurações necessárias:** informe se alguma variável de ambiente, deployment ou permissão precisou ser alterada.
+4. **Testes executados:** informe o que foi testado, como foi testado e o resultado de cada teste.
+5. **Evidências:** apresente exemplos das respostas reais da API, omitindo segredos e informações sensíveis.
+6. **Estado final:** informe se o aplicativo foi efetivamente validado com dados reais da planilha.
+7. **Pendências:** caso algo dependa de uma ação minha ou não tenha podido ser testado, explique com clareza.
+
+Se você tiver acesso ao repositório, aos arquivos, à Vercel e ao Apps Script, faça as alterações e publique as versões necessárias dentro das permissões disponíveis.
+
+Se não tiver acesso a algum serviço, não afirme que realizou uma publicação ou um teste que não conseguiu executar. Prepare a correção, explique a limitação e me dê instruções exatas para concluir a etapa necessária.
+
+## 10. Comunicação durante o trabalho
+
+Estou disponível para fornecer informações adicionais, compartilhar configurações não sensíveis, executar procedimentos manuais e ajudar com permissões ou publicações, caso seja necessário.
+
+**Se precisar de alguma informação adicional para diagnosticar, corrigir ou validar o problema, pergunte-me antes de assumir valores ou configurações.**
+
+Quero que você tenha autonomia para investigar e resolver o problema, mas com cuidado para não comprometer o funcionamento atual do aplicativo nem a segurança da integração.
+
+**Prioridade máxima: corrigir a conexão da API com o Google Apps Script e entregar o Finance Micro SaaS funcionando corretamente, comprovado por testes reais.**

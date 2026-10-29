@@ -81,6 +81,56 @@ test("forwards allowlisted reads through authenticated POST without URL secrets"
     }
 });
 
+test("rejects empty or malformed successful responses for every read action", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async () => new Response("{}", { status: 200 });
+    try {
+        for (const acao of [
+            "dashboard",
+            "historico",
+            "subcategorias",
+            "configuracoes",
+            "metas"
+        ]) {
+            const res = await executar(criarRequisicao({
+                path: `/api/finance?acao=${acao}`
+            }));
+            assert.equal(res.statusCode, 502, acao);
+            assert.match(
+                res.json().message,
+                /formato|incomplet[oa]s|inválid[oa]s/i,
+                acao
+            );
+        }
+    } finally {
+        global.fetch = originalFetch;
+    }
+});
+
+test("accepts a complete dashboard response", async () => {
+    const originalFetch = global.fetch;
+    const dashboard = {
+        entrada: 150,
+        saida: 27,
+        saldo: 123,
+        essencial: 20,
+        naoEssencial: 7,
+        investimentos: 0,
+        sonhos: 0
+    };
+    global.fetch = async () =>
+        new Response(JSON.stringify(dashboard), { status: 200 });
+    try {
+        const res = await executar(criarRequisicao({
+            path: "/api/finance?acao=dashboard"
+        }));
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.json(), dashboard);
+    } finally {
+        global.fetch = originalFetch;
+    }
+});
+
 test("forwards a validated movement and returns its confirmation", async () => {
     const originalFetch = global.fetch;
     let upstreamRequest;
@@ -321,7 +371,13 @@ test("reports an upstream timeout as an unknown write outcome", async () => {
 
 test("marks malformed upstream JSON as uncertain for writes", async () => {
     const originalFetch = global.fetch;
-    global.fetch = async () => new Response("<html>error</html>", { status: 200 });
+    let calls = 0;
+    global.fetch = async () => {
+        calls += 1;
+        return calls === 1
+            ? new Response("<html>error</html>", { status: 200 })
+            : new Response("[]", { status: 200 });
+    };
     try {
         const res = await executar(criarRequisicao({
             method: "POST",
@@ -333,6 +389,50 @@ test("marks malformed upstream JSON as uncertain for writes", async () => {
         }));
         assert.equal(res.statusCode, 502);
         assert.equal(res.json().outcomeUnknown, true);
+        assert.equal(calls, 2);
+    } finally {
+        global.fetch = originalFetch;
+    }
+});
+
+test("confirms a movement from history when the Apps Script write response is malformed", async () => {
+    const originalFetch = global.fetch;
+    const idMovimentacao = "movement-recovery-operation-001";
+    let calls = 0;
+    global.fetch = async (_url, options) => {
+        calls += 1;
+        if (calls === 1) {
+            return new Response("", { status: 200 });
+        }
+
+        const form = new URLSearchParams(options.body);
+        assert.equal(form.get("acao"), "historico");
+        assert.equal(
+            form.get("_sharedSecret"),
+            process.env.APPS_SCRIPT_SHARED_SECRET
+        );
+        return new Response(JSON.stringify([{
+            idMovimentacao,
+            valor: 35
+        }]), { status: 200 });
+    };
+    try {
+        const res = await executar(criarRequisicao({
+            method: "POST",
+            path: "/api/finance",
+            body: new URLSearchParams({
+                registro: JSON.stringify({ idMovimentacao }),
+                idOperacao: idMovimentacao
+            }).toString()
+        }));
+
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.json(), {
+            success: true,
+            idMovimentacao,
+            confirmadaNoHistorico: true
+        });
+        assert.equal(calls, 2);
     } finally {
         global.fetch = originalFetch;
     }

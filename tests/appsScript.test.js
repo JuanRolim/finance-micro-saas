@@ -9,6 +9,20 @@ const source = fs.readFileSync(
     "utf8"
 );
 
+class FakeTextOutput {
+    constructor(content) {
+        Object.defineProperty(this, "content", { value: content });
+    }
+
+    getContent() {
+        return this.content;
+    }
+
+    setMimeType() {
+        return this;
+    }
+}
+
 class FakeSheet {
     constructor(name, rows = 50, columns = 40) {
         this.name = name;
@@ -91,10 +105,7 @@ function criarContexto() {
         },
         ContentService: {
             MimeType: { JSON: "application/json" },
-            createTextOutput: (text) => ({
-                text,
-                setMimeType() { return this; }
-            })
+            createTextOutput: (text) => new FakeTextOutput(text)
         },
         Utilities: { getUuid: () => "generated-id" },
         LockService: {
@@ -119,25 +130,76 @@ test("rejects direct unauthenticated Apps Script requests", () => {
     const deniedPost = context.doPost({ parameter: { acao: "dashboard" } });
     const deniedGet = context.doGet({ parameter: { acao: "dashboard" } });
 
-    assert.deepEqual(JSON.parse(deniedPost.text), {
+    assert.deepEqual(JSON.parse(deniedPost.getContent()), {
         success: false,
         message: "Não autorizado."
     });
-    assert.match(JSON.parse(deniedGet.text).message, /Não autorizado/);
+    assert.match(JSON.parse(deniedGet.getContent()).message, /Não autorizado/);
 });
 
-test("accepts authenticated reads only through POST", () => {
+test("returns each authenticated Apps Script read without double serialization", () => {
     const context = criarContexto();
-    context.obterDashboard = () => ({ saldo: 123 });
+    const respostas = {
+        dashboard: {
+            saldo: 123,
+            entrada: 150,
+            saida: 27,
+            essencial: 20,
+            naoEssencial: 7,
+            investimentos: 0,
+            sonhos: 0
+        },
+        historico: [],
+        subcategorias: [],
+        configuracoes: {
+            fluxos: [],
+            naturezas: [],
+            essencialidades: [],
+            comportamentos: [],
+            classificacoes: [],
+            correspondenciasLegadas: []
+        },
+        metas: []
+    };
+    for (const [acao, dados] of Object.entries(respostas)) {
+        const nomeFuncao = {
+            subcategorias: "obterSubcategorias"
+        }[acao] || `obter${acao[0].toUpperCase()}${acao.slice(1)}`;
+        context[nomeFuncao] = () => context.responderJson(dados);
+        const response = context.doPost({
+            parameter: {
+                _sharedSecret: context.__secretProperties.APPS_SCRIPT_SHARED_SECRET,
+                acao
+            }
+        });
+
+        assert.equal(JSON.stringify(response), "{}", acao);
+        assert.equal(response instanceof FakeTextOutput, true, acao);
+        assert.deepEqual(JSON.parse(response.getContent()), dados, acao);
+    }
+});
+
+test("returns a JSON confirmation after an authenticated movement save", () => {
+    const context = criarContexto();
+    const registro = { idMovimentacao: "movement-operation-001" };
+    context.salvarMovimentacao = (dados) => ({
+        success: true,
+        idMovimentacao: dados.idMovimentacao
+    });
 
     const response = context.doPost({
         parameter: {
             _sharedSecret: context.__secretProperties.APPS_SCRIPT_SHARED_SECRET,
-            acao: "dashboard"
+            acao: "movimentacao",
+            idOperacao: registro.idMovimentacao,
+            registro: JSON.stringify(registro)
         }
     });
 
-    assert.deepEqual(JSON.parse(response.text), { saldo: 123 });
+    assert.deepEqual(JSON.parse(response.getContent()), {
+        success: true,
+        idMovimentacao: registro.idMovimentacao
+    });
 });
 
 test("creates a meta idempotently using the persisted operation id", () => {

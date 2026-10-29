@@ -71,6 +71,14 @@ Automatizados localmente:
   URL e falha fechada quando a variável não está configurada.
 - O Apps Script rejeita chamadas sem segredo e não fornece consultas por GET.
 - O proxy rejeita ações/formatos não permitidos e escritas sem ID estável.
+- Consultas não aceitam apenas HTTP 200: o proxy confere o formato das
+  respostas de dashboard, histórico, subcategorias, configurações e metas.
+- O `doPost` retorna diretamente o `TextOutput` das consultas do Apps Script,
+  evitando serializar novamente a resposta JSON.
+- Se a resposta de uma gravação de movimentação vier ilegível, a Vercel
+  consulta o histórico autenticado pelo mesmo ID estável antes de informar
+  resultado desconhecido. Se o registro já estiver na planilha, a API confirma
+  a gravação sem reenviá-la nem criar duplicidade.
 - Movimentações (incluindo parcelas) usam seus IDs de registro; criação de
   metas persiste o ID da operação na própria linha; atualizações de estado e
   classificações repetidas são tratadas como estado desejado.
@@ -90,7 +98,9 @@ claramente identificados:
    confirme resposta `success: false` / `Não autorizado.`; repita com valor
    inválido. Não inclua o segredo em URL ou console.
 4. Consulte dashboard, histórico, metas, configurações e subcategorias pelo
-   app autenticado.
+   app autenticado. Confirme que dashboard/configurações retornam objetos com
+   os campos esperados e que histórico, metas e subcategorias retornam arrays;
+   HTTP 200 com `{}` deve ser tratado como erro, não como consulta válida.
 5. Registre uma receita, uma despesa e uma despesa parcelada com observação
    identificável de teste. Confirme na planilha os IDs, os campos e a
    quantidade de linhas; repita a mesma operação com os mesmos IDs e confirme
@@ -101,7 +111,17 @@ claramente identificados:
 8. Após sucesso, revogue a implantação Apps Script antiga e verifique outra
    vez que a URL antiga não expõe os dados.
 
-Não houve nesta alteração acesso autenticado ao painel Vercel, publicação do
-Apps Script nem escrita na planilha real. Portanto, esses testes de
-implantação continuam pendentes e não se deve declarar o app pronto para uso
-real até concluí-los.
+Na verificação de produção, o painel Vercel mostrou Vercel Authentication
+habilitada para **All Deployments** e as variáveis `APPS_SCRIPT_URL` e
+`APPS_SCRIPT_SHARED_SECRET` configuradas para Production (os valores não foram
+exibidos nem copiados). As cinco consultas reais autenticadas responderam HTTP
+200, mas todas retornaram `{}`, confirmando que a resposta vazia estava sendo
+tratada como sucesso. A correção descrita neste documento foi aplicada apenas
+nos arquivos locais; ainda é necessário publicá-la e repetir as consultas.
+
+Uma requisição de gravação com data deliberadamente inválida foi usada para
+verificar o caminho POST sem alterar a planilha; o Apps Script retornou o erro
+de validação em JSON. Isso não valida a gravação bem-sucedida. Não houve
+gravação de teste na planilha real. A recuperação pelo histórico e a
+confirmação de gravação bem-sucedida precisam ser verificadas após a publicação
+das alterações locais; não se deve declarar a integração pronta antes disso.

@@ -1,4 +1,4 @@
-const ID_PLANILHA = "1-VBbppruN6e7IRsTPxfqzTcLI82uTNmaK0063RMV1Gk";
+const ID_PLANILHA = "1kjYHK63hqPfeYp1KlURt0y7yGzK9iFZ7Bxr5ySSceio";
 
 const MESES = {
 
@@ -813,15 +813,15 @@ function doPost(e){
 
     const acao = e.parameter.acao || "movimentacao";
 
-    if (acao === "dashboard") return responderJson(obterDashboard());
-    if (acao === "historico") return responderJson(obterHistorico());
+    if (acao === "dashboard") return obterDashboard();
+    if (acao === "historico") return obterHistorico();
     if (acao === "subcategorias") {
-      return responderJson(obterSubcategorias(e.parameter));
+      return obterSubcategorias(e.parameter);
     }
     if (acao === "configuracoes") {
-      return responderJson(obterConfiguracoes());
+      return obterConfiguracoes();
     }
-    if (acao === "metas") return responderJson(obterMetas());
+    if (acao === "metas") return obterMetas();
 
     if (!identificadorOperacaoValido(e.parameter.idOperacao)) {
       throw new Error("A operação precisa de um identificador estável.");

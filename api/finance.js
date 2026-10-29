@@ -197,6 +197,83 @@ function criarFormularioUpstream(req, acao, form) {
     return parametros;
 }
 
+function validarRespostaConsulta(acao, dados) {
+    if (acao === "historico" || acao === "subcategorias" ||
+        acao === "metas") {
+        if (!Array.isArray(dados)) {
+            throw new Error(
+                `O Apps Script retornou um formato inválido para ${acao}.`
+            );
+        }
+        return;
+    }
+
+    if (!dados || typeof dados !== "object" || Array.isArray(dados)) {
+        throw new Error(
+            `O Apps Script retornou um formato inválido para ${acao}.`
+        );
+    }
+
+    if (acao === "dashboard") {
+        const campos = [
+            "saldo",
+            "entrada",
+            "saida",
+            "essencial",
+            "naoEssencial",
+            "investimentos",
+            "sonhos"
+        ];
+        if (!campos.every((campo) =>
+            typeof dados[campo] === "number" && Number.isFinite(dados[campo])
+        )) {
+            throw new Error(
+                "O Apps Script retornou dados incompletos ou inválidos para o dashboard."
+            );
+        }
+        return;
+    }
+
+    if (acao === "configuracoes" &&
+        (!Array.isArray(dados.classificacoes) ||
+            !Array.isArray(dados.fluxos) ||
+            !Array.isArray(dados.naturezas))) {
+        throw new Error(
+            "O Apps Script retornou configurações incompletas ou inválidas."
+        );
+    }
+}
+
+async function verificarMovimentacaoNoHistorico(url, segredo, idMovimentacao) {
+    const parametros = new URLSearchParams({
+        acao: "historico",
+        [SECRET_FIELD]: segredo
+    });
+    const resposta = await fetch(url, {
+        method: "POST",
+        redirect: "follow",
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+        },
+        body: parametros.toString(),
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS)
+    });
+    if (!resposta.ok) {
+        throw new Error(
+            `A consulta de confirmação respondeu com HTTP ${resposta.status}.`
+        );
+    }
+
+    const dados = JSON.parse(await resposta.text());
+    if (!Array.isArray(dados)) {
+        throw new Error("O histórico retornou um formato inválido.");
+    }
+    return dados.some((item) =>
+        item && item.idMovimentacao === idMovimentacao
+    );
+}
+
 async function chamarAppsScript(req, acao, form, operacaoDeEscrita) {
     const { url, segredo } = obterConfiguracaoUpstream();
     const formularioUpstream = criarFormularioUpstream(req, acao, form);
@@ -245,6 +322,32 @@ async function chamarAppsScript(req, acao, form, operacaoDeEscrita) {
     try {
         dados = JSON.parse(texto);
     } catch {
+        const idMovimentacao = operacaoDeEscrita &&
+            acao === "movimentacao" && form
+            ? form.get(OPERATION_ID_FIELD)
+            : null;
+        if (idMovimentacao) {
+            try {
+                const confirmada = await verificarMovimentacaoNoHistorico(
+                    url,
+                    segredo,
+                    idMovimentacao
+                );
+                if (confirmada) {
+                    return {
+                        success: true,
+                        idMovimentacao,
+                        confirmadaNoHistorico: true
+                    };
+                }
+            } catch (erro) {
+                console.error(
+                    "Não foi possível confirmar a movimentação no histórico:",
+                    erro.name,
+                    erro.message
+                );
+            }
+        }
         throw new UpstreamUncertainError(
             operacaoDeEscrita
                 ? "O Apps Script retornou uma resposta inválida após a gravação."
@@ -275,6 +378,7 @@ async function chamarAppsScript(req, acao, form, operacaoDeEscrita) {
         erro.statusCode = 502;
         throw erro;
     }
+    if (!operacaoDeEscrita) validarRespostaConsulta(acao, dados);
     return dados;
 }
 
